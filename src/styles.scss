@@ -1,0 +1,52 @@
+@use "bootstrap/scss/bootstrap" as *;
+
+:root{
+    /* CSS HEX */
+    --pearl-aqua: #75ddddff;
+    --pacific-cyan: #508991ff;
+    --deep-space-blue: #172a3aff;
+    --dark-teal: #004346ff;
+    --mint-leaf: #09bc8aff;
+}
+
+/* You can add global styles to this file, and also import other style files */
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    height: 100%;
+}
+
+.background-colour-home {
+    background: #F3F4F6;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.card-title{
+    font-size: x-large;
+    font-weight: bolder;
+    color: var(--dark-teal);
+}
+
+.card-text{
+    
+    font-size: xxx-large;
+    font-weight: bolder;
+    color: var(--pacific-cyan)
+}
+
+.card{
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+.card:hover{
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.card-link{
+    color: var(--mint-leaf);
+}

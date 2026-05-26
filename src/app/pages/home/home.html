@@ -1,0 +1,46 @@
+<div class="background-colour-home">
+    <app-menu></app-menu>
+    <div class="container mt-5 ">
+        <div class="d-flex flex-wrap row g-2">
+            <div class="col-md-4">
+                <app-card 
+                [title]="'Caminhões'" 
+                [text]="'2'"></app-card>
+            </div>
+            <div class="col-md-4">
+                <app-card 
+                [title]="'Motoristas'" 
+                [text]="'2'"></app-card>
+            </div>
+            <div class="col-md-4">
+                <app-card 
+                [title]="'Manutenções'" 
+                [text]="'5'"></app-card>
+            </div>
+        </div>
+        <div class="pt-4">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Skeleton enquanto carrega -->
+                    <div *ngIf="isLoading" class="placeholder-glow">
+                        <h5 class="card-title placeholder" style="width: 50%; height: 1.5rem;"></h5>
+                        <span class="card-text placeholder" style="width: 100%; min-height: 1rem;"></span>
+                        <span class="card-text placeholder" style="width: 100%; min-height: 1rem;"></span>
+                        <span class="card-text placeholder" style="width: 100%; min-height: 1rem;"></span>
+                    </div>
+    
+                    <!-- Conteúdo carregado -->
+                    <div *ngIf="!isLoading">
+                        <h5 class="card-title">Atividades Recentes</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">An item</li>
+                            <li class="list-group-item">A second item</li>
+                            <li class="list-group-item">A third item</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>    
+</div>

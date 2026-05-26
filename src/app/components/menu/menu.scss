@@ -1,0 +1,11 @@
+
+
+.navbar-bg{
+    background: var(--dark-teal);
+}
+.navbar-brand, .nav-link {
+    color: rgba(255,255,255, 0.80) !important;
+}
+.nav-link.show, .nav-link.active, .nav-link:hover {
+    color: rgba(255,255,255, 1) !important;
+}
