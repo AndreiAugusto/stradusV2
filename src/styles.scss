@@ -40,13 +40,21 @@ html, body {
 .card{
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
-.card:hover{
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
-    transform: translateY(-5px);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
 .card-link{
     color: var(--mint-leaf);
+}
+
+.btn-edit{
+    background-color: var(--pacific-cyan);
+    color: white;
+    border-color: var(--pacific-cyan);
+}
+.btn-edit:hover{
+    background-color: var(--mint-leaf);
+    color: white;
+}
+
+.title{
+    color: var(--dark-teal);
+    font-weight: bold;
 }

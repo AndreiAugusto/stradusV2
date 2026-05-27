@@ -12,6 +12,19 @@
     border-width: 1px;
     border-color: #ffffff26;
 }
+.card:hover{
+    box-shadow: none;
+    transform: none;
+    transition: none;
+    cursor: auto;
+}
+
+.card-title{
+    font-size: x-large;
+    font-weight: 700;
+    color: white;
+}
+
 
 .text-body-secondary {
     color: #ffffffc0 !important;

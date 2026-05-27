@@ -11,6 +11,8 @@ import { Subject } from 'rxjs';
 export class Card implements OnInit, OnDestroy {
   @Input() title: string = '';
   @Input() text: string = '';
+  @Input() link1: string = '';
+  @Input() link2: string = '';
   
   isLoading: boolean = true;
   private destroy$ = new Subject<void>();
