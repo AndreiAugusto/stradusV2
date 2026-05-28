@@ -58,3 +58,20 @@ html, body {
     color: var(--dark-teal);
     font-weight: bold;
 }
+
+.table{
+    margin-bottom: 0 !important;
+    overflow: hidden;
+}
+
+.table thead th { 
+    background-color:var(--pacific-cyan); 
+    color: white;
+}
+
+th{
+    text-align: center !important;
+}
+tr td{
+    text-align: center !important;
+}
