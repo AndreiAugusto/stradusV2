@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Menu } from '../../components/menu/menu';
 import { OficinaModel } from '../../../models/oficina.model';
-import { CommonModule } from '@angular/common';
+import { OficinaService } from '../../../services/oficina.service';
 
 @Component({
   selector: 'app-oficina',
@@ -11,26 +12,28 @@ import { CommonModule } from '@angular/common';
 })
 export class Oficina {
   isLoading = true;
+  erro = false;
+  oficinas: OficinaModel[] = [];
 
-  oficinas: OficinaModel[] = [
-    {
-      nome: 'Sena Pneus',
-      telefone: '(65) 99999-9999',
-      endereco: 'Várzea Grande',
-      email: 'email@email.com'
-    },
-    {
-      nome: 'Tecnovolvo',
-      telefone: '(65) 98765-4321',
-      endereco: 'Cuiabá',
-      email: 'email@email.com'
-    }
-  ];
+  constructor(private service: OficinaService) {}
 
   ngOnInit() {
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 2000);      
+    this.service.listar().subscribe({
+      next: (data) => {
+        this.oficinas = data;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.erro = true;
+        this.isLoading = false;
+      },
+    });
   }
 
+  deletar(id?: number) {
+    if (!id || !confirm('Deseja deletar esta oficina?')) return;
+    this.service.deletar(id).subscribe({
+      next: () => { this.oficinas = this.oficinas.filter(o => o.id !== id); },
+    });
+  }
 }

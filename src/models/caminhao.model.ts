@@ -1,5 +1,6 @@
 export interface CaminhaoModel {
-    placa: string;
-    modelo: string;
-    ano: string;
-}  
+  id?: number;
+  modelo: string;
+  ano: string;
+  placa: string;
+}

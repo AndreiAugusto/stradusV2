@@ -1,28 +1,44 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-    {
-        path: '',
-        loadComponent: () => import('./pages/login/login').then(m => m.Login)
-    },
-    {
-        path: 'home',
-        loadComponent: () => import('./pages/home/home').then(m => m.Home)
-    },
-    {
-        path: 'caminhao',
-        loadComponent: () => import('./pages/caminhao/caminhao').then(m => m.Caminhao)
-    },
-    {
-        path: 'oficina',
-        loadComponent: () => import('./pages/oficina/oficina').then(m => m.Oficina)
-    },
-    {
-        path: 'motorista',
-        loadComponent: () => import('./pages/motorista/motorista').then(m => m.Motorista)
-    },
-    {
-        path: 'manutencao',
-        loadComponent: () => import('./pages/manutencao/manutencao').then(m => m.Manutencao)
-    }
+  {
+    path: '',
+    loadComponent: () => import('./pages/login/login').then(m => m.Login),
+  },
+  {
+    path: 'home',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/home/home').then(m => m.Home),
+  },
+  {
+    path: 'frete',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/frete/frete').then(m => m.Frete),
+  },
+  {
+    path: 'abastecimento',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/abastecimento/abastecimento').then(m => m.Abastecimento),
+  },
+  {
+    path: 'manutencao',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/manutencao/manutencao').then(m => m.Manutencao),
+  },
+  {
+    path: 'caminhao',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/caminhao/caminhao').then(m => m.Caminhao),
+  },
+  {
+    path: 'oficina',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/oficina/oficina').then(m => m.Oficina),
+  },
+  {
+    path: 'motorista',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/motorista/motorista').then(m => m.Motorista),
+  },
 ];

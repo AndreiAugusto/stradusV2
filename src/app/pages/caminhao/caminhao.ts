@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Menu } from '../../components/menu/menu';
 import { CaminhaoModel } from '../../../models/caminhao.model';
-import { CommonModule } from '@angular/common';
+import { CaminhaoService } from '../../../services/caminhao.service';
 
 @Component({
   selector: 'app-caminhao',
@@ -11,23 +12,28 @@ import { CommonModule } from '@angular/common';
 })
 export class Caminhao {
   isLoading = true;
+  erro = false;
+  caminhoes: CaminhaoModel[] = [];
 
-  caminhoes: CaminhaoModel[] = [
-    {
-      placa: 'ABC-1234',
-      modelo: 'Volvo FH',
-      ano: '2020'
-    },
-    {
-      placa: 'DEF-5678',  
-      modelo: 'Scania R500',
-      ano: '2019'
-    },
-  ];
+  constructor(private service: CaminhaoService) {}
 
   ngOnInit() {
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 2000);      
+    this.service.listar().subscribe({
+      next: (data) => {
+        this.caminhoes = data;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.erro = true;
+        this.isLoading = false;
+      },
+    });
+  }
+
+  deletar(id?: number) {
+    if (!id || !confirm('Deseja deletar este caminhão?')) return;
+    this.service.deletar(id).subscribe({
+      next: () => { this.caminhoes = this.caminhoes.filter(c => c.id !== id); },
+    });
   }
 }

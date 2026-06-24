@@ -1,49 +1,126 @@
-<div class="background-colour-home">
-    <app-menu></app-menu>
-    <div class="container mt-5 ">
-        <div class="d-flex flex-wrap row g-2">
-            <div class="col-md-4">
-                <app-card 
-                [title]="'Caminhões'" 
-                [text]="'2'"
-                [link1]="'/caminhao'"></app-card>
-            </div>
-            <div class="col-md-4">
-                <app-card 
-                [title]="'Motoristas'" 
-                [text]="'2'"
-                [link1]="'/motorista'"></app-card>
-            </div>
-            <div class="col-md-4">
-                <app-card 
-                [title]="'Manutenções'" 
-                [text]="'5'"
-                [link1]="'/manutencao'"></app-card>
-            </div>
-        </div>
-        <div class="pt-4">
-            <div class="card">
-                <div class="card-body">
-                    <!-- Skeleton enquanto carrega -->
-                    <div *ngIf="isLoading" class="placeholder-glow">
-                        <h5 class="card-title placeholder" style="width: 50%; height: 1.5rem;"></h5>
-                        <span class="card-text placeholder" style="width: 100%; min-height: 1rem;"></span>
-                        <span class="card-text placeholder" style="width: 100%; min-height: 1rem;"></span>
-                        <span class="card-text placeholder" style="width: 100%; min-height: 1rem;"></span>
-                    </div>
-    
-                    <!-- Conteúdo carregado -->
-                    <div *ngIf="!isLoading">
-                        <h5 class="card-title">Atividades Recentes</h5>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">An item</li>
-                            <li class="list-group-item">A second item</li>
-                            <li class="list-group-item">A third item</li>
-                        </ul>
-                    </div>
-                </div>
+<div class="app-layout">
+  <app-menu></app-menu>
 
-            </div>
+  <main class="page-content">
+
+    <!-- Header -->
+    <div class="page-header d-flex justify-content-between align-items-start">
+      <div>
+        <h1>Dashboard</h1>
+        <p class="page-subtitle">Resumo financeiro do mês</p>
+      </div>
+      <a routerLink="/frete" class="btn btn-primary-custom">
+        <i class="bi bi-plus-lg"></i> Novo Frete
+      </a>
+    </div>
+
+    <!-- Erro -->
+    <div *ngIf="erro" class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Não foi possível carregar os dados. Verifique a conexão com a API.
+    </div>
+
+    <!-- Skeleton loading -->
+    <div *ngIf="isLoading" class="row g-3 mb-4">
+      <div class="col-sm-6 col-xl-3" *ngFor="let _ of [1,2,3,4]">
+        <div class="kpi-card" style="height: 110px">
+          <div class="placeholder-glow">
+            <span class="placeholder d-block w-50 mb-2" style="height: 12px; border-radius: 4px"></span>
+            <span class="placeholder d-block w-75" style="height: 32px; border-radius: 4px"></span>
+          </div>
         </div>
-    </div>    
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
+
+      <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-income">
+          <div class="kpi-label">Receita do Mês</div>
+          <div class="kpi-value" style="color: #10B981">
+            {{ resumo.fretes.receitaBruta | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub">
+            <i class="bi bi-box-seam" style="color: #10B981"></i>
+            {{ resumo.fretes.total }} fretes realizados
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-expense">
+          <div class="kpi-label">Despesas do Mês</div>
+          <div class="kpi-value" style="color: #EF4444">
+            {{ totalDespesas | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub">
+            <i class="bi bi-tools" style="color: #EF4444"></i>
+            {{ resumo.manutencoes.total }} manutenções + {{ resumo.abastecimentos.total }} abastecimentos
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-primary">
+          <div class="kpi-label">Saldo do Mês</div>
+          <div class="kpi-value" [style.color]="resumo.saldoLiquido >= 0 ? '#10B981' : '#EF4444'">
+            {{ resumo.saldoLiquido | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub">
+            <i class="bi bi-graph-up" [style.color]="resumo.saldoLiquido >= 0 ? '#10B981' : '#EF4444'"></i>
+            {{ resumo.saldoLiquido >= 0 ? 'Resultado positivo' : 'Resultado negativo' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-warning">
+          <div class="kpi-label">Combustível</div>
+          <div class="kpi-value">
+            {{ resumo.abastecimentos.custo | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub">
+            <i class="bi bi-fuel-pump" style="color: #F59E0B"></i>
+            <span *ngIf="resumo.abastecimentos.total">{{ resumo.abastecimentos.total }} litros</span>
+            <span *ngIf="!resumo.abastecimentos.total">Este mês</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Atalhos rápidos -->
+    <div *ngIf="!isLoading && !erro" class="row g-3">
+      <div class="col-sm-6 col-lg-3">
+        <a routerLink="/frete" class="quick-link">
+          <i class="bi bi-box-seam-fill"></i>
+          <span>Ver Fretes</span>
+          <i class="bi bi-arrow-right ms-auto"></i>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <a routerLink="/abastecimento" class="quick-link">
+          <i class="bi bi-fuel-pump-fill"></i>
+          <span>Abastecimentos</span>
+          <i class="bi bi-arrow-right ms-auto"></i>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <a routerLink="/manutencao" class="quick-link">
+          <i class="bi bi-wrench-adjustable"></i>
+          <span>Manutenções</span>
+          <i class="bi bi-arrow-right ms-auto"></i>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <a routerLink="/caminhao" class="quick-link">
+          <i class="bi bi-truck"></i>
+          <span>Caminhões</span>
+          <i class="bi bi-arrow-right ms-auto"></i>
+        </a>
+      </div>
+    </div>
+
+  </main>
 </div>

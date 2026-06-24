@@ -1,0 +1,109 @@
+<div class="app-layout">
+  <app-menu></app-menu>
+
+  <main class="page-content">
+
+    <div class="page-header d-flex justify-content-between align-items-start">
+      <div>
+        <h1>Fretes</h1>
+        <p class="page-subtitle">Controle de entregas e receitas</p>
+      </div>
+      <button class="btn btn-primary-custom">
+        <i class="bi bi-plus-lg"></i> Registrar Frete
+      </button>
+    </div>
+
+    <div *ngIf="erro" class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Erro ao carregar fretes.
+    </div>
+
+    <!-- KPI Mini Cards -->
+    <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-income">
+          <div class="kpi-label">Receita Total</div>
+          <div class="kpi-value" style="color: #10B981">
+            {{ totalMes | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub"><i class="bi bi-calendar-check" style="color:#10B981"></i> Todos os fretes</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-warning">
+          <div class="kpi-label">Quantidade</div>
+          <div class="kpi-value">{{ quantidade }}</div>
+          <div class="kpi-sub"><i class="bi bi-truck" style="color:#F59E0B"></i> Fretes registrados</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-primary">
+          <div class="kpi-label">Ticket Médio</div>
+          <div class="kpi-value">{{ ticketMedio | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          <div class="kpi-sub"><i class="bi bi-graph-up" style="color:#3B82F6"></i> Por frete</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="px-4 py-3 border-bottom">
+          <h6 class="fw-bold mb-0" style="color: var(--color-text)">Lista de Fretes</h6>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Data</th>
+                <th style="text-align: left !important">Descrição</th>
+                <th>Caminhão</th>
+                <th>Motorista</th>
+                <th>% Motorista</th>
+                <th>Valor</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="!isLoading">
+              <tr *ngFor="let frete of fretes">
+                <td style="color: var(--color-text-muted)">{{ frete.id }}</td>
+                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ frete.data | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
+                <td style="text-align: left !important; font-size: 0.875rem">{{ frete.descricao || '—' }}</td>
+                <td style="font-size: 0.875rem; font-weight: 600">{{ frete.placa }}</td>
+                <td style="font-size: 0.875rem">{{ frete.nomeMotorista }}</td>
+                <td style="font-size: 0.875rem">{{ frete.porcentagemMotorista }}%</td>
+                <td class="fw-semibold" style="color: #10B981">
+                  {{ frete.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-edit me-1">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deletar(frete.id)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="fretes.length === 0">
+                <td colspan="8" class="text-center py-4" style="color: var(--color-text-muted)">
+                  Nenhum frete registrado.
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="isLoading">
+              <tr>
+                <td colspan="8" class="text-center py-4">
+                  <div class="spinner-border" style="color: var(--color-primary)" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

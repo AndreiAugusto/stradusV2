@@ -1,0 +1,21 @@
+export interface ResumoDashboard {
+  mes: number;
+  ano: number;
+  fretes: fretes;
+  manutencoes: manutencoes;
+  abastecimentos: abastecimentos;
+  saldoLiquido: number;
+}
+
+export interface fretes {
+  total: number;
+  receitaBruta: number;
+}
+export interface manutencoes {
+  total: number;
+  custo: number;
+}
+export interface abastecimentos {
+  total: number;
+  custo: number;
+}

@@ -5,20 +5,20 @@
 
     <div class="page-header d-flex justify-content-between align-items-start">
       <div>
-        <h1>Manutenções</h1>
-        <p class="page-subtitle">Controle de manutenções e reparos</p>
+        <h1>Abastecimentos</h1>
+        <p class="page-subtitle">Controle de combustível e despesas</p>
       </div>
       <button class="btn btn-primary-custom">
-        <i class="bi bi-plus-lg"></i> Registrar Manutenção
+        <i class="bi bi-plus-lg"></i> Registrar Abastecimento
       </button>
     </div>
 
     <div *ngIf="erro" class="alert alert-danger d-flex align-items-center gap-2 mb-4">
       <i class="bi bi-exclamation-triangle-fill"></i>
-      Erro ao carregar manutenções.
+      Erro ao carregar abastecimentos.
     </div>
 
-    <!-- KPI -->
+    <!-- KPI Mini Cards -->
     <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
       <div class="col-sm-4">
         <div class="kpi-card kpi-expense">
@@ -26,14 +26,21 @@
           <div class="kpi-value" style="color: #EF4444">
             {{ totalGasto | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
           </div>
-          <div class="kpi-sub"><i class="bi bi-wrench" style="color:#EF4444"></i> Em manutenções</div>
+          <div class="kpi-sub"><i class="bi bi-fuel-pump" style="color:#EF4444"></i> Em combustível</div>
         </div>
       </div>
       <div class="col-sm-4">
         <div class="kpi-card kpi-warning">
-          <div class="kpi-label">Total de Registros</div>
-          <div class="kpi-value">{{ manutencoes.length }}</div>
-          <div class="kpi-sub"><i class="bi bi-list-check" style="color:#F59E0B"></i> Manutenções</div>
+          <div class="kpi-label">Total Abastecido</div>
+          <div class="kpi-value">{{ totalLitros | number:'1.0-0':'pt-BR' }} L</div>
+          <div class="kpi-sub"><i class="bi bi-droplet-fill" style="color:#F59E0B"></i> Litros totais</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-primary">
+          <div class="kpi-label">Preço Médio / L</div>
+          <div class="kpi-value">{{ precioMedio | currency:'BRL':'symbol':'1.3-3':'pt-BR' }}</div>
+          <div class="kpi-sub"><i class="bi bi-tag" style="color:#3B82F6"></i> Por litro</div>
         </div>
       </div>
     </div>
@@ -42,7 +49,7 @@
     <div class="card">
       <div class="card-body p-0">
         <div class="px-4 py-3 border-bottom">
-          <h6 class="fw-bold mb-0" style="color: var(--color-text)">Histórico de Manutenções</h6>
+          <h6 class="fw-bold mb-0" style="color: var(--color-text)">Histórico de Abastecimentos</h6>
         </div>
         <div class="table-responsive">
           <table class="table table-hover mb-0">
@@ -51,40 +58,38 @@
                 <th>#</th>
                 <th>Data</th>
                 <th>Caminhão</th>
-                <th>Oficina</th>
-                <th style="text-align: left !important">Descrição</th>
-                <th>Custo</th>
+                <th>Litros</th>
+                <th>Custo Total</th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <tr *ngFor="let m of manutencoes">
-                <td style="color: var(--color-text-muted)">{{ m.id }}</td>
-                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ m.data  | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
-                <td style="font-size: 0.875rem; font-weight: 600">{{ m.placaCaminhao }}</td>
-                <td style="font-size: 0.875rem">{{ m.nomeOficina }}</td>
-                <td style="text-align: left !important; font-size: 0.875rem">{{ m.descricao || '—' }}</td>
+              <tr *ngFor="let ab of abastecimentos">
+                <td style="color: var(--color-text-muted)">{{ ab.id }}</td>
+                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ ab.data  | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
+                <td style="font-size: 0.875rem; font-weight: 600">{{ ab.placa }}</td>
+                <td style="font-size: 0.875rem">{{ ab.litros }} L</td>
                 <td class="fw-semibold" style="color: #EF4444">
-                  {{ (m.custo ?? 0) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                  {{ ab.custoTotal | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
                 </td>
                 <td>
                   <button class="btn btn-sm btn-edit me-1">
                     <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-sm btn-danger" (click)="deletar(m.id)">
+                  <button class="btn btn-sm btn-danger" (click)="deletar(ab.id)">
                     <i class="bi bi-trash"></i>
                   </button>
                 </td>
               </tr>
-              <tr *ngIf="manutencoes.length === 0">
-                <td colspan="7" class="text-center py-4" style="color: var(--color-text-muted)">
-                  Nenhuma manutenção registrada.
+              <tr *ngIf="abastecimentos.length === 0">
+                <td colspan="6" class="text-center py-4" style="color: var(--color-text-muted)">
+                  Nenhum abastecimento registrado.
                 </td>
               </tr>
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="7" class="text-center py-4">
+                <td colspan="6" class="text-center py-4">
                   <div class="spinner-border" style="color: var(--color-primary)" role="status">
                     <span class="visually-hidden">Carregando...</span>
                   </div>

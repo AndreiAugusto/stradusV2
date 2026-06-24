@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Menu } from '../../components/menu/menu';
 import { MotoristaModel } from '../../../models/motorista.model';
-import { CommonModule } from '@angular/common';
+import { MotoristaService } from '../../../services/motorista.service';
 
 @Component({
   selector: 'app-motorista',
@@ -11,24 +12,28 @@ import { CommonModule } from '@angular/common';
 })
 export class Motorista {
   isLoading = true;
+  erro = false;
+  motoristas: MotoristaModel[] = [];
 
-  motoristas: MotoristaModel[] = [
-    {
-      nome: 'João Silva',
-      nascimento: '15/03/1985',
-      nCarteira: '123456789'
-    },
-    {
-      nome: 'Maria Oliveira',
-      nascimento: '20/07/1990',
-      nCarteira: '987654321'
-    }
-  ];
+  constructor(private service: MotoristaService) {}
 
   ngOnInit() {
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 2000);      
+    this.service.listar().subscribe({
+      next: (data) => {
+        this.motoristas = data;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.erro = true;
+        this.isLoading = false;
+      },
+    });
   }
 
+  deletar(id?: number) {
+    if (!id || !confirm('Deseja deletar este motorista?')) return;
+    this.service.deletar(id).subscribe({
+      next: () => { this.motoristas = this.motoristas.filter(m => m.id !== id); },
+    });
+  }
 }

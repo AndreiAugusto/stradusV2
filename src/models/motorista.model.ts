@@ -1,5 +1,6 @@
 export interface MotoristaModel {
-    nome: string;
-    nascimento: string;
-    nCarteira: string;
-}  
+  id?: number;
+  nomeMotorista: string;
+  nascimento: string;
+  nCarteira?: string;
+}
