@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
-import { ResumoDashboard } from '../models/dashboard.model';
+import { ResumoDashboard, UltimaMovimentacao } from '../models/dashboard.model';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -21,4 +21,5 @@ export class DashboardService {
   manutencoesPorCaminhao(id: number) { return this.http.get<{ count: number }>(`${this.url}/caminhao/countOne/${id}`); }
   manutencoesPorOficina(id: number)  { return this.http.get<{ count: number }>(`${this.url}/oficina/countOne/${id}`); }
   pagamentoMotorista(id: number)     { return this.http.get<any>(`${this.url}/motorista/pagamento/${id}`); }
+  ultimasMovimentacoes(limite = 10)  { return this.http.get<UltimaMovimentacao[]>(`${this.url}/ultimas-movimentacoes`, { params: { limite } }); }
 }

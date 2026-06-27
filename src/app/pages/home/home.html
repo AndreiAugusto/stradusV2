@@ -82,7 +82,7 @@
           </div>
           <div class="kpi-sub">
             <i class="bi bi-fuel-pump" style="color: #F59E0B"></i>
-            <span *ngIf="resumo.abastecimentos.total">{{ resumo.abastecimentos.total }} litros</span>
+            <span *ngIf="resumo.abastecimentos.total">{{ resumo.abastecimentos.total }} abastecimento</span>
             <span *ngIf="!resumo.abastecimentos.total">Este mês</span>
           </div>
         </div>
@@ -91,7 +91,7 @@
     </div>
 
     <!-- Atalhos rápidos -->
-    <div *ngIf="!isLoading && !erro" class="row g-3">
+    <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
       <div class="col-sm-6 col-lg-3">
         <a routerLink="/frete" class="quick-link">
           <i class="bi bi-box-seam-fill"></i>
@@ -119,6 +119,57 @@
           <span>Caminhões</span>
           <i class="bi bi-arrow-right ms-auto"></i>
         </a>
+      </div>
+    </div>
+
+    <!-- Últimas Movimentações -->
+    <div class="movimentacoes-section">
+      <h2 class="movimentacoes-titulo">Últimas Movimentações</h2>
+
+      <!-- Skeleton -->
+      <div *ngIf="isLoadingMovimentacoes" class="movimentacoes-lista">
+        <div *ngFor="let _ of [1,2,3,4,5]" class="movimentacao-item">
+          <div class="placeholder-glow d-flex align-items-center gap-3 w-100">
+            <span class="placeholder" style="width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;"></span>
+            <div class="flex-grow-1">
+              <span class="placeholder d-block w-50 mb-1" style="height: 14px; border-radius: 4px"></span>
+              <span class="placeholder d-block w-25" style="height: 12px; border-radius: 4px"></span>
+            </div>
+            <span class="placeholder" style="width: 80px; height: 14px; border-radius: 4px"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista -->
+      <div *ngIf="!isLoadingMovimentacoes" class="movimentacoes-lista">
+        <div
+          *ngFor="let mov of movimentacoes"
+          class="movimentacao-item"
+          (click)="navegarParaMovimentacao(mov)"
+        >
+          <div class="mov-icone" [style.background-color]="corMovimentacao(mov.tipo) + '1A'" [style.color]="corMovimentacao(mov.tipo)">
+            <i class="bi" [ngClass]="iconeMovimentacao(mov.tipo)"></i>
+          </div>
+          <div class="mov-info">
+            <div class="mov-descricao">{{ mov.descricao }}</div>
+            <div class="mov-meta">
+              <span class="mov-badge" [style.background-color]="corMovimentacao(mov.tipo) + '1A'" [style.color]="corMovimentacao(mov.tipo)">
+                {{ labelTipo(mov.tipo) }}
+              </span>
+              <span class="mov-placa">{{ mov.identificador }}</span>
+              <span class="mov-data">{{ mov.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</span>
+            </div>
+          </div>
+          <div class="mov-valor" [style.color]="mov.tipo === 'frete' ? '#10B981' : '#EF4444'">
+            {{ mov.tipo === 'frete' ? '+' : '-' }}{{ mov.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <i class="bi bi-chevron-right mov-seta"></i>
+        </div>
+
+        <div *ngIf="movimentacoes.length === 0" class="movimentacoes-vazio">
+          <i class="bi bi-inbox"></i>
+          <span>Nenhuma movimentação encontrada</span>
+        </div>
       </div>
     </div>
 

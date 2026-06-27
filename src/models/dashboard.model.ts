@@ -19,3 +19,12 @@ export interface abastecimentos {
   total: number;
   custo: number;
 }
+
+export interface UltimaMovimentacao {
+  tipo: 'frete' | 'abastecimento' | 'manutencao';
+  id: number;
+  data: string;
+  valor: number;
+  descricao: string;
+  identificador: string;
+}

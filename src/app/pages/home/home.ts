@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Menu } from '../../components/menu/menu';
 import { DashboardService } from '../../../services/dashboard.service';
-import { ResumoDashboard } from '../../../models/dashboard.model';
+import { ResumoDashboard, UltimaMovimentacao } from '../../../models/dashboard.model';
 
 @Component({
   selector: 'app-home',
@@ -13,6 +13,7 @@ import { ResumoDashboard } from '../../../models/dashboard.model';
 })
 export class Home {
   isLoading = true;
+  isLoadingMovimentacoes = true;
   erro = false;
 
   resumo: ResumoDashboard = {
@@ -33,6 +34,8 @@ export class Home {
     saldoLiquido:              0,
   };
 
+  movimentacoes: UltimaMovimentacao[] = [];
+
   get totalDespesas() {
     return this.resumo.manutencoes.custo + this.resumo.abastecimentos.custo;
   }
@@ -48,7 +51,53 @@ export class Home {
         this.isLoading = false;
       },
     });
+
+    this.dashboard.ultimasMovimentacoes(8).subscribe({
+      next: (data) => {
+        this.movimentacoes = data;
+        this.isLoadingMovimentacoes = false;
+      },
+      error: () => {
+        this.isLoadingMovimentacoes = false;
+      },
+    });
   }
 
-  constructor(private dashboard: DashboardService) {}
+  navegarParaMovimentacao(mov: UltimaMovimentacao): void {
+    const rotas: Record<string, string> = {
+      frete: '/frete',
+      abastecimento: '/abastecimento',
+      manutencao: '/manutencao',
+    };
+    this.router.navigate([rotas[mov.tipo]]);
+  }
+
+  iconeMovimentacao(tipo: string): string {
+    const icones: Record<string, string> = {
+      frete: 'bi-box-seam-fill',
+      abastecimento: 'bi-fuel-pump-fill',
+      manutencao: 'bi-wrench-adjustable',
+    };
+    return icones[tipo] ?? 'bi-circle';
+  }
+
+  corMovimentacao(tipo: string): string {
+    const cores: Record<string, string> = {
+      frete: '#10B981',
+      abastecimento: '#F59E0B',
+      manutencao: '#EF4444',
+    };
+    return cores[tipo] ?? '#6B7280';
+  }
+
+  labelTipo(tipo: string): string {
+    const labels: Record<string, string> = {
+      frete: 'Frete',
+      abastecimento: 'Abastecimento',
+      manutencao: 'Manutenção',
+    };
+    return labels[tipo] ?? tipo;
+  }
+
+  constructor(private dashboard: DashboardService, private router: Router) {}
 }
