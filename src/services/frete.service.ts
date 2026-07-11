@@ -12,6 +12,6 @@ export class FreteService {
   listar()                      { return this.http.get<FreteModel[]>(this.url); }
   buscar(id: number)            { return this.http.get<FreteModel>(`${this.url}/${id}`); }
   criar(data: FreteModel)       { return this.http.post<FreteModel>(this.url, data); }
-  atualizar(id: number, data: FreteModel) { return this.http.put<FreteModel>(`${this.url}/${id}`, data); }
+  atualizar(id: number, data: FreteModel) { return this.http.patch<FreteModel>(`${this.url}/${id}`, data); }
   deletar(id: number)           { return this.http.delete(`${this.url}/${id}`); }
 }

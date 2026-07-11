@@ -8,7 +8,7 @@
         <h1>Manutenções</h1>
         <p class="page-subtitle">Controle de manutenções e reparos</p>
       </div>
-      <button class="btn btn-primary-custom">
+      <button class="btn btn-primary-custom" (click)="abrirNovo()">
         <i class="bi bi-plus-lg"></i> Registrar Manutenção
       </button>
     </div>
@@ -53,38 +53,87 @@
                 <th>Caminhão</th>
                 <th>Oficina</th>
                 <th style="text-align: left !important">Descrição</th>
+                <th>Parcelas</th>
                 <th>Custo</th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <tr *ngFor="let m of manutencoes">
-                <td style="color: var(--color-text-muted)">{{ m.id }}</td>
-                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ m.data  | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
-                <td style="font-size: 0.875rem; font-weight: 600">{{ m.placaCaminhao }}</td>
-                <td style="font-size: 0.875rem">{{ m.nomeOficina }}</td>
-                <td style="text-align: left !important; font-size: 0.875rem">{{ m.descricao || '—' }}</td>
-                <td class="fw-semibold" style="color: #EF4444">
-                  {{ (m.custo ?? 0) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
-                </td>
-                <td>
-                  <button class="btn btn-sm btn-edit me-1">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-danger" (click)="deletar(m.id)">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </td>
-              </tr>
+              <ng-container *ngFor="let m of manutencoes">
+                <tr>
+                  <td style="color: var(--color-text-muted)">{{ m.id }}</td>
+                  <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ m.data  | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
+                  <td style="font-size: 0.875rem; font-weight: 600">{{ m.placaCaminhao }}</td>
+                  <td style="font-size: 0.875rem">{{ m.nomeOficina }}</td>
+                  <td style="text-align: left !important; font-size: 0.875rem">{{ m.descricao || '—' }}</td>
+                  <td>
+                    <button
+                      *ngIf="(m.totalParcelas ?? 1) > 1; else avista"
+                      class="tipo-badge"
+                      style="background: var(--color-primary); cursor: pointer; border: none"
+                      (click)="toggleParcelas(m)">
+                      {{ m.parcelasPagas ?? 0 }}/{{ m.totalParcelas }} pagas
+                      <i class="bi" [ngClass]="expandidoId === m.id ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                    </button>
+                    <ng-template #avista>
+                      <span class="tipo-badge" style="background: var(--color-text-muted)">À vista</span>
+                    </ng-template>
+                  </td>
+                  <td class="fw-semibold" style="color: #EF4444">
+                    {{ (m.custo ?? 0) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(m)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" (click)="deletar(m.id)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="expandidoId === m.id">
+                  <td [attr.colspan]="8" style="background: #F8FAFC; text-align: left !important">
+                    <div *ngIf="carregandoParcelas && !parcelasPorManutencao[m.id!]" class="py-2 text-center">
+                      <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
+                    </div>
+                    <table class="table table-sm mb-0" *ngIf="parcelasPorManutencao[m.id!]">
+                      <thead>
+                        <tr>
+                          <th>Parcela</th>
+                          <th>Vencimento</th>
+                          <th>Valor</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let p of parcelasPorManutencao[m.id!]">
+                          <td>{{ p.numero }}/{{ m.totalParcelas }}</td>
+                          <td>{{ p.dataVencimento | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
+                          <td>{{ p.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                          <td>
+                            <button
+                              class="tipo-badge"
+                              style="border: none; cursor: pointer"
+                              [style.background]="p.pago ? 'var(--color-income)' : 'var(--color-warning)'"
+                              (click)="togglePago(p, m.id!)">
+                              {{ p.pago ? 'Paga' : 'Pendente' }}
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </ng-container>
               <tr *ngIf="manutencoes.length === 0">
-                <td colspan="7" class="text-center py-4" style="color: var(--color-text-muted)">
+                <td colspan="8" class="text-center py-4" style="color: var(--color-text-muted)">
                   Nenhuma manutenção registrada.
                 </td>
               </tr>
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="7" class="text-center py-4">
+                <td colspan="8" class="text-center py-4">
                   <div class="spinner-border" style="color: var(--color-primary)" role="status">
                     <span class="visually-hidden">Carregando...</span>
                   </div>
@@ -97,4 +146,64 @@
     </div>
 
   </main>
+</div>
+
+<!-- Modal de criação/edição -->
+<div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel-header">
+      <h5>{{ editandoId ? 'Editar Manutenção' : 'Registrar Manutenção' }}</h5>
+      <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="modal-panel-body">
+        <div class="mb-3">
+          <label class="form-label">Descrição</label>
+          <input type="text" class="form-control" formControlName="descricao" placeholder="Ex: Troca de óleo e filtros">
+        </div>
+
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Caminhão</label>
+            <select class="form-select" formControlName="caminhaoId">
+              <option [ngValue]="null" disabled>Selecione...</option>
+              <option *ngFor="let cam of caminhoes" [ngValue]="cam.id">{{ cam.placa }} — {{ cam.modelo }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Oficina</label>
+            <select class="form-select" formControlName="oficinaId">
+              <option [ngValue]="null" disabled>Selecione...</option>
+              <option *ngFor="let of of oficinas" [ngValue]="of.id">{{ of.nomeOficina }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-4 mb-3">
+            <label class="form-label">Custo Total (R$)</label>
+            <input type="number" step="0.01" min="0" class="form-control" formControlName="custo">
+          </div>
+          <div class="col-sm-4 mb-3">
+            <label class="form-label">Data</label>
+            <input type="date" class="form-control" formControlName="data">
+          </div>
+          <div class="col-sm-4 mb-3">
+            <label class="form-label">Nº de Parcelas</label>
+            <input type="number" min="1" class="form-control" formControlName="numeroParcelas">
+          </div>
+        </div>
+        <div class="form-text" *ngIf="!editandoId">Deixe 1 parcela para pagamento à vista. Se maior que 1, o valor será dividido igualmente pelos meses seguintes à data informada.</div>
+        <div class="form-text" *ngIf="editandoId">Custo, data e nº de parcelas não podem ser alterados após a criação (já geraram as parcelas). Delete e recadastre se precisar corrigi-los.</div>
+      </div>
+
+      <div class="modal-panel-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          {{ salvando ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

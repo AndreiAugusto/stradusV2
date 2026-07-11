@@ -22,7 +22,7 @@
 
     <!-- Skeleton loading -->
     <div *ngIf="isLoading" class="row g-3 mb-4">
-      <div class="col-sm-6 col-xl-3" *ngFor="let _ of [1,2,3,4]">
+      <div class="col-sm-6 col-xl-3" *ngFor="let _ of [1,2,3,4,5]">
         <div class="kpi-card" style="height: 110px">
           <div class="placeholder-glow">
             <span class="placeholder d-block w-50 mb-2" style="height: 12px; border-radius: 4px"></span>
@@ -56,7 +56,7 @@
           </div>
           <div class="kpi-sub">
             <i class="bi bi-tools" style="color: #EF4444"></i>
-            {{ resumo.manutencoes.total }} manutenções + {{ resumo.abastecimentos.total }} abastecimentos
+            {{ resumo.manutencoes.total }} manutenções + {{ resumo.abastecimentos.total }} abastecimentos + {{ resumo.custosFixos.total }} custos fixos
           </div>
         </div>
       </div>
@@ -84,6 +84,20 @@
             <i class="bi bi-fuel-pump" style="color: #F59E0B"></i>
             <span *ngIf="resumo.abastecimentos.total">{{ resumo.abastecimentos.total }} abastecimento</span>
             <span *ngIf="!resumo.abastecimentos.total">Este mês</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-expense">
+          <div class="kpi-label">Custos Fixos</div>
+          <div class="kpi-value" style="color: #EF4444">
+            {{ resumo.custosFixos.custo | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub">
+            <i class="bi bi-receipt" style="color: #EF4444"></i>
+            <span *ngIf="resumo.custosFixos.total">{{ resumo.custosFixos.total }} ativos este mês</span>
+            <span *ngIf="!resumo.custosFixos.total">Nenhum ativo este mês</span>
           </div>
         </div>
       </div>
@@ -117,6 +131,13 @@
         <a routerLink="/caminhao" class="quick-link">
           <i class="bi bi-truck"></i>
           <span>Caminhões</span>
+          <i class="bi bi-arrow-right ms-auto"></i>
+        </a>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <a routerLink="/custo-fixo" class="quick-link">
+          <i class="bi bi-receipt"></i>
+          <span>Custos Fixos</span>
           <i class="bi bi-arrow-right ms-auto"></i>
         </a>
       </div>

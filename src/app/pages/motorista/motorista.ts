@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Menu } from '../../components/menu/menu';
 import { MotoristaModel } from '../../../models/motorista.model';
 import { MotoristaService } from '../../../services/motorista.service';
 
 @Component({
   selector: 'app-motorista',
-  imports: [Menu, CommonModule],
+  imports: [Menu, CommonModule, ReactiveFormsModule],
   templateUrl: './motorista.html',
   styleUrl: './motorista.scss',
 })
@@ -15,9 +16,24 @@ export class Motorista {
   erro = false;
   motoristas: MotoristaModel[] = [];
 
+  showForm = false;
+  salvando = false;
+  editandoId: number | null = null;
+
+  form = new FormGroup({
+    nomeMotorista: new FormControl('', [Validators.required]),
+    nascimento:    new FormControl('', [Validators.required]),
+    nCarteira:     new FormControl(''),
+  });
+
   constructor(private service: MotoristaService) {}
 
   ngOnInit() {
+    this.carregar();
+  }
+
+  carregar() {
+    this.isLoading = true;
     this.service.listar().subscribe({
       next: (data) => {
         this.motoristas = data;
@@ -34,6 +50,56 @@ export class Motorista {
     if (!id || !confirm('Deseja deletar este motorista?')) return;
     this.service.deletar(id).subscribe({
       next: () => { this.motoristas = this.motoristas.filter(m => m.id !== id); },
+    });
+  }
+
+  abrirNovo() {
+    this.editandoId = null;
+    this.form.reset({ nomeMotorista: '', nascimento: '', nCarteira: '' });
+    this.showForm = true;
+  }
+
+  abrirEdicao(item: MotoristaModel) {
+    this.editandoId = item.id ?? null;
+    this.form.reset({
+      nomeMotorista: item.nomeMotorista,
+      nascimento: item.nascimento?.slice(0, 10),
+      nCarteira: item.nCarteira ?? '',
+    });
+    this.showForm = true;
+  }
+
+  fecharForm() {
+    this.showForm = false;
+  }
+
+  onSubmit() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const valorForm = this.form.value;
+    const payload: MotoristaModel = {
+      nomeMotorista: valorForm.nomeMotorista!,
+      nascimento: valorForm.nascimento!,
+      nCarteira: valorForm.nCarteira || undefined,
+    };
+
+    this.salvando = true;
+    const request = this.editandoId
+      ? this.service.atualizar(this.editandoId, payload)
+      : this.service.criar(payload);
+
+    request.subscribe({
+      next: () => {
+        this.salvando = false;
+        this.showForm = false;
+        this.carregar();
+      },
+      error: () => {
+        this.salvando = false;
+      },
     });
   }
 }

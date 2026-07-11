@@ -8,7 +8,7 @@
         <h1>Fretes</h1>
         <p class="page-subtitle">Controle de entregas e receitas</p>
       </div>
-      <button class="btn btn-primary-custom">
+      <button class="btn btn-primary-custom" (click)="abrirNovo()">
         <i class="bi bi-plus-lg"></i> Registrar Frete
       </button>
     </div>
@@ -77,7 +77,7 @@
                   {{ frete.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
                 </td>
                 <td>
-                  <button class="btn btn-sm btn-edit me-1">
+                  <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(frete)">
                     <i class="bi bi-pencil"></i>
                   </button>
                   <button class="btn btn-sm btn-danger" (click)="deletar(frete.id)">
@@ -106,4 +106,86 @@
     </div>
 
   </main>
+</div>
+
+<!-- Modal de criação/edição -->
+<div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel-header">
+      <h5>{{ editandoId ? 'Editar Frete' : 'Registrar Frete' }}</h5>
+      <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="modal-panel-body">
+        <div class="mb-3">
+          <label class="form-label">Descrição (opcional)</label>
+          <input type="text" class="form-control" formControlName="descricao" placeholder="Ex: Carga de soja - SP para MG">
+        </div>
+
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Caminhão</label>
+            <select class="form-select" formControlName="caminhaoId">
+              <option [ngValue]="null" disabled>Selecione...</option>
+              <option *ngFor="let cam of caminhoes" [ngValue]="cam.id">{{ cam.placa }} — {{ cam.modelo }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Motorista</label>
+            <select class="form-select" formControlName="motoristaId">
+              <option [ngValue]="null" disabled>Selecione...</option>
+              <option *ngFor="let mot of motoristas" [ngValue]="mot.id">{{ mot.nomeMotorista }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-4 mb-3">
+            <label class="form-label">Valor (R$)</label>
+            <input type="number" step="0.01" min="0" class="form-control" formControlName="valor">
+          </div>
+          <div class="col-sm-4 mb-3">
+            <label class="form-label">Data</label>
+            <input type="date" class="form-control" formControlName="data">
+          </div>
+          <div class="col-sm-4 mb-3">
+            <label class="form-label">% Motorista</label>
+            <input type="number" min="0" max="100" class="form-control" formControlName="porcentagemMotorista">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-sm-4 mb-3">
+            <label class="form-label">Origem (opcional)</label>
+            <select class="form-select" formControlName="origemId">
+              <option [ngValue]="null">—</option>
+              <option *ngFor="let cid of cidades" [ngValue]="cid.id">{{ cid.nome }}/{{ cid.siglaEstado }}</option>
+            </select>
+          </div>
+          <div class="col-sm-4 mb-3">
+            <label class="form-label">Destino (opcional)</label>
+            <select class="form-select" formControlName="destinoId">
+              <option [ngValue]="null">—</option>
+              <option *ngFor="let cid of cidades" [ngValue]="cid.id">{{ cid.nome }}/{{ cid.siglaEstado }}</option>
+            </select>
+          </div>
+          <div class="col-sm-4 mb-3">
+            <label class="form-label">Carga (opcional)</label>
+            <select class="form-select" formControlName="cargaId">
+              <option [ngValue]="null">—</option>
+              <option *ngFor="let c of cargas" [ngValue]="c.id">{{ c.nome }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-panel-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          {{ salvando ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

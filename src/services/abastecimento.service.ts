@@ -12,6 +12,6 @@ export class AbastecimentoService {
   listar()                           { return this.http.get<AbastecimentoModel[]>(this.url); }
   buscar(id: number)                 { return this.http.get<AbastecimentoModel>(`${this.url}/${id}`); }
   criar(data: AbastecimentoModel)    { return this.http.post<AbastecimentoModel>(this.url, data); }
-  atualizar(id: number, data: AbastecimentoModel) { return this.http.put<AbastecimentoModel>(`${this.url}/${id}`, data); }
+  atualizar(id: number, data: AbastecimentoModel) { return this.http.patch<AbastecimentoModel>(`${this.url}/${id}`, data); }
   deletar(id: number)                { return this.http.delete(`${this.url}/${id}`); }
 }

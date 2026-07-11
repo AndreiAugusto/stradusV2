@@ -4,6 +4,7 @@ export interface ResumoDashboard {
   fretes: fretes;
   manutencoes: manutencoes;
   abastecimentos: abastecimentos;
+  custosFixos: custosFixos;
   saldoLiquido: number;
 }
 
@@ -16,6 +17,10 @@ export interface manutencoes {
   custo: number;
 }
 export interface abastecimentos {
+  total: number;
+  custo: number;
+}
+export interface custosFixos {
   total: number;
   custo: number;
 }

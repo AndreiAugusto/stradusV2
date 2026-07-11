@@ -165,6 +165,65 @@ td  { text-align: center !important; vertical-align: middle !important; }
   }
 }
 
+/* ── Modal (custom overlay, sem depender do JS do Bootstrap) ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal-panel {
+  background: var(--color-card);
+  border-radius: 0.75rem;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+
+  h5 {
+    margin: 0;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+}
+
+.modal-panel-body {
+  padding: 1.5rem;
+}
+
+.modal-panel-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.btn-close-custom {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 1;
+
+  &:hover { color: var(--color-text); }
+}
+
 /* ── Title (legacy compat) ───────────────────────── */
 .title {
   font-size: 1.5rem;

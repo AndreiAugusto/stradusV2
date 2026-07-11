@@ -12,6 +12,6 @@ export class OficinaService {
   listar()                       { return this.http.get<OficinaModel[]>(this.url); }
   buscar(id: number)             { return this.http.get<OficinaModel>(`${this.url}/${id}`); }
   criar(data: OficinaModel)      { return this.http.post<OficinaModel>(this.url, data); }
-  atualizar(id: number, data: OficinaModel) { return this.http.put<OficinaModel>(`${this.url}/${id}`, data); }
+  atualizar(id: number, data: OficinaModel) { return this.http.patch<OficinaModel>(`${this.url}/${id}`, data); }
   deletar(id: number)            { return this.http.delete(`${this.url}/${id}`); }
 }

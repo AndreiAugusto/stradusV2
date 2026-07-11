@@ -7,7 +7,7 @@
                 <h1>Oficinas</h1>
                 <p class="page-subtitle">Gestão de oficinas parceiras</p>
             </div>
-            <button class="btn btn-primary-custom">
+            <button class="btn btn-primary-custom" (click)="abrirNovo()">
                 <i class="bi bi-plus-lg"></i> Adicionar Oficina
             </button>
         </div>
@@ -33,7 +33,7 @@
                                 <td style="color: var(--color-text-muted)">{{ oficina.id }}</td>
                                 <td style="font-weight: 600; text-align: left !important">{{ oficina.nomeOficina }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-edit me-1">
+                                    <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(oficina)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger" (click)="deletar(oficina.id)">
@@ -62,4 +62,30 @@
         </div>
 
     </main>
+</div>
+
+<!-- Modal de criação/edição -->
+<div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel-header">
+      <h5>{{ editandoId ? 'Editar Oficina' : 'Adicionar Oficina' }}</h5>
+      <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="modal-panel-body">
+        <div class="mb-3">
+          <label class="form-label">Nome da Oficina</label>
+          <input type="text" class="form-control" formControlName="nomeOficina" placeholder="Ex: Posto Miriam">
+        </div>
+      </div>
+
+      <div class="modal-panel-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          {{ salvando ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

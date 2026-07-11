@@ -7,7 +7,7 @@
                 <h1>Caminhões</h1>
                 <p class="page-subtitle">Gestão da frota</p>
             </div>
-            <button class="btn btn-primary-custom">
+            <button class="btn btn-primary-custom" (click)="abrirNovo()">
                 <i class="bi bi-plus-lg"></i> Adicionar Caminhão
             </button>
         </div>
@@ -37,7 +37,7 @@
                                 <td>{{ caminhao.modelo }}</td>
                                 <td>{{ caminhao.ano  | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-edit me-1">
+                                    <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(caminhao)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger" (click)="deletar(caminhao.id)">
@@ -66,4 +66,40 @@
         </div>
 
     </main>
+</div>
+
+<!-- Modal de criação/edição -->
+<div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel-header">
+      <h5>{{ editandoId ? 'Editar Caminhão' : 'Adicionar Caminhão' }}</h5>
+      <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="modal-panel-body">
+        <div class="mb-3">
+          <label class="form-label">Modelo</label>
+          <input type="text" class="form-control" formControlName="modelo" placeholder="Ex: DAF XF">
+        </div>
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Ano</label>
+            <input type="date" class="form-control" formControlName="ano">
+          </div>
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Placa</label>
+            <input type="text" class="form-control" formControlName="placa" placeholder="ABC-1234">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-panel-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          {{ salvando ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

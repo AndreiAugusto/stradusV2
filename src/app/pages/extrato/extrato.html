@@ -1,0 +1,167 @@
+<div class="app-layout">
+  <app-menu></app-menu>
+
+  <main class="page-content">
+
+    <div class="page-header d-flex justify-content-between align-items-start">
+      <div>
+        <h1>Extrato</h1>
+        <p class="page-subtitle">Todas as movimentações — fretes, abastecimentos, manutenções e custos fixos</p>
+      </div>
+    </div>
+
+    <div *ngIf="erro" class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Erro ao carregar extrato.
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Data Início</label>
+            <input type="date" class="form-control" [(ngModel)]="filtro.dataInicio" (change)="carregar()">
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Data Fim</label>
+            <input type="date" class="form-control" [(ngModel)]="filtro.dataFim" (change)="carregar()">
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <label class="form-label">Caminhão</label>
+            <select class="form-select" [(ngModel)]="filtro.caminhaoId" (change)="carregar()">
+              <option [ngValue]="null">Todos</option>
+              <option *ngFor="let cam of caminhoes" [ngValue]="cam.id">{{ cam.placa }} — {{ cam.modelo }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <label class="form-label">Motorista</label>
+            <select class="form-select" [(ngModel)]="filtro.motoristaId" (change)="carregar()">
+              <option [ngValue]="null">Todos</option>
+              <option *ngFor="let mot of motoristas" [ngValue]="mot.id">{{ mot.nomeMotorista }}</option>
+            </select>
+          </div>
+          <div class="col-lg-2">
+            <button class="btn btn-outline-secondary w-100" (click)="limparFiltros()">
+              <i class="bi bi-x-circle"></i> Limpar
+            </button>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-3 mt-3">
+          <div class="form-check" *ngFor="let t of tiposDisponiveis">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [id]="'tipo-' + t.valor"
+              [(ngModel)]="filtro.tipos[t.valor]"
+              (change)="carregar()">
+            <label class="form-check-label" [for]="'tipo-' + t.valor">{{ t.label }}</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-income">
+          <div class="kpi-label">Receitas</div>
+          <div class="kpi-value" style="color: #10B981">
+            {{ totalReceitas | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub"><i class="bi bi-arrow-down-circle" style="color:#10B981"></i> No período filtrado</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-expense">
+          <div class="kpi-label">Despesas</div>
+          <div class="kpi-value" style="color: #EF4444">
+            {{ totalDespesas | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub"><i class="bi bi-arrow-up-circle" style="color:#EF4444"></i> No período filtrado</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-primary">
+          <div class="kpi-label">Saldo</div>
+          <div class="kpi-value" [style.color]="saldo >= 0 ? '#10B981' : '#EF4444'">
+            {{ saldo | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub">
+            <i class="bi bi-graph-up" [style.color]="saldo >= 0 ? '#10B981' : '#EF4444'"></i>
+            {{ itens.length }} movimentações
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th class="sortable" (click)="ordenarPor('data')">
+                  Data <i class="bi" [ngClass]="sortColuna==='data' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('placa')">
+                  Placa <i class="bi" [ngClass]="sortColuna==='placa' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('motorista')">
+                  Motorista <i class="bi" [ngClass]="sortColuna==='motorista' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('empresa')">
+                  Empresa <i class="bi" [ngClass]="sortColuna==='empresa' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" style="text-align: left !important" (click)="ordenarPor('historico')">
+                  Histórico <i class="bi" [ngClass]="sortColuna==='historico' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('despesas')">
+                  Despesas <i class="bi" [ngClass]="sortColuna==='despesas' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('receitas')">
+                  Receitas <i class="bi" [ngClass]="sortColuna==='receitas' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+              </tr>
+            </thead>
+            <tbody *ngIf="!isLoading">
+              <tr *ngFor="let item of itensOrdenados">
+                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ item.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
+                <td style="font-weight: 600; font-size: 0.875rem">{{ item.placa || '—' }}</td>
+                <td style="font-size: 0.875rem">{{ item.motorista || '—' }}</td>
+                <td style="font-size: 0.875rem">{{ item.empresa || '—' }}</td>
+                <td style="text-align: left !important; font-size: 0.875rem">
+                  <span class="tipo-badge me-2" [style.background-color]="corTipo(item.tipo)">{{ labelTipo(item.tipo) }}</span>
+                  {{ item.historico }}
+                </td>
+                <td class="fw-semibold" style="color: #EF4444">
+                  {{ item.despesas ? (item.despesas | currency:'BRL':'symbol':'1.2-2':'pt-BR') : '—' }}
+                </td>
+                <td class="fw-semibold" style="color: #10B981">
+                  {{ item.receitas ? (item.receitas | currency:'BRL':'symbol':'1.2-2':'pt-BR') : '—' }}
+                </td>
+              </tr>
+              <tr *ngIf="itens.length === 0">
+                <td colspan="7" class="text-center py-4" style="color: var(--color-text-muted)">
+                  Nenhuma movimentação encontrada para os filtros selecionados.
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="isLoading">
+              <tr>
+                <td colspan="7" class="text-center py-4">
+                  <div class="spinner-border" style="color: var(--color-primary)" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

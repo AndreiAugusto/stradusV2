@@ -12,6 +12,6 @@ export class MotoristaService {
   listar()                         { return this.http.get<MotoristaModel[]>(this.url); }
   buscar(id: number)               { return this.http.get<MotoristaModel>(`${this.url}/${id}`); }
   criar(data: MotoristaModel)      { return this.http.post<MotoristaModel>(this.url, data); }
-  atualizar(id: number, data: MotoristaModel) { return this.http.put<MotoristaModel>(`${this.url}/${id}`, data); }
+  atualizar(id: number, data: MotoristaModel) { return this.http.patch<MotoristaModel>(`${this.url}/${id}`, data); }
   deletar(id: number)              { return this.http.delete(`${this.url}/${id}`); }
 }

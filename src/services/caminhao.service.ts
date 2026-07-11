@@ -12,6 +12,6 @@ export class CaminhaoService {
   listar()                        { return this.http.get<CaminhaoModel[]>(this.url); }
   buscar(id: number)              { return this.http.get<CaminhaoModel>(`${this.url}/${id}`); }
   criar(data: CaminhaoModel)      { return this.http.post<CaminhaoModel>(this.url, data); }
-  atualizar(id: number, data: CaminhaoModel) { return this.http.put<CaminhaoModel>(`${this.url}/${id}`, data); }
+  atualizar(id: number, data: CaminhaoModel) { return this.http.patch<CaminhaoModel>(`${this.url}/${id}`, data); }
   deletar(id: number)             { return this.http.delete(`${this.url}/${id}`); }
 }

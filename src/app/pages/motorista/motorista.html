@@ -7,7 +7,7 @@
                 <h1>Motoristas</h1>
                 <p class="page-subtitle">Gestão de motoristas cadastrados</p>
             </div>
-            <button class="btn btn-primary-custom">
+            <button class="btn btn-primary-custom" (click)="abrirNovo()">
                 <i class="bi bi-plus-lg"></i> Adicionar Motorista
             </button>
         </div>
@@ -37,7 +37,7 @@
                                 <td>{{ motorista.nascimento | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
                                 <td>{{ motorista.nCarteira || '—' }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-edit me-1">
+                                    <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(motorista)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <button class="btn btn-sm btn-danger" (click)="deletar(motorista.id)">
@@ -66,4 +66,40 @@
         </div>
 
     </main>
+</div>
+
+<!-- Modal de criação/edição -->
+<div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel-header">
+      <h5>{{ editandoId ? 'Editar Motorista' : 'Adicionar Motorista' }}</h5>
+      <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="modal-panel-body">
+        <div class="mb-3">
+          <label class="form-label">Nome</label>
+          <input type="text" class="form-control" formControlName="nomeMotorista" placeholder="Nome completo">
+        </div>
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Data de Nascimento</label>
+            <input type="date" class="form-control" formControlName="nascimento">
+          </div>
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Nº Carteira (CNH)</label>
+            <input type="text" class="form-control" formControlName="nCarteira">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-panel-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          {{ salvando ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

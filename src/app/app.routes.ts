@@ -27,6 +27,16 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/manutencao/manutencao').then(m => m.Manutencao),
   },
   {
+    path: 'custo-fixo',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/custo-fixo/custo-fixo').then(m => m.CustoFixo),
+  },
+  {
+    path: 'extrato',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/extrato/extrato').then(m => m.Extrato),
+  },
+  {
     path: 'caminhao',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/caminhao/caminhao').then(m => m.Caminhao),
