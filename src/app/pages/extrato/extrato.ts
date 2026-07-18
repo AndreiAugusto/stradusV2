@@ -30,6 +30,7 @@ export class Extrato {
     { valor: 'abastecimento', label: 'Abastecimento' },
     { valor: 'manutencao', label: 'Manutenção' },
     { valor: 'custo-fixo', label: 'Custo Fixo' },
+    { valor: 'salario-motorista', label: 'Salário Motorista' },
   ];
 
   filtro: {
@@ -41,7 +42,7 @@ export class Extrato {
   } = {
     dataInicio: '',
     dataFim: '',
-    tipos: { frete: true, abastecimento: true, manutencao: true, 'custo-fixo': true },
+    tipos: { frete: true, abastecimento: true, manutencao: true, 'custo-fixo': true, 'salario-motorista': true },
     caminhaoId: null,
     motoristaId: null,
   };
@@ -128,7 +129,7 @@ export class Extrato {
     this.filtro = {
       dataInicio: '',
       dataFim: '',
-      tipos: { frete: true, abastecimento: true, manutencao: true, 'custo-fixo': true },
+      tipos: { frete: true, abastecimento: true, manutencao: true, 'custo-fixo': true, 'salario-motorista': true },
       caminhaoId: null,
       motoristaId: null,
     };
@@ -145,6 +146,7 @@ export class Extrato {
       abastecimento: '#F59E0B',
       manutencao: '#EF4444',
       'custo-fixo': '#EF4444',
+      'salario-motorista': '#EF4444',
     };
     return cores[tipo];
   }

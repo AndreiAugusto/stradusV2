@@ -35,13 +35,16 @@ export class Home {
       total: 0,
       custo: 0
     },
+    salarios: {
+      custo: 0
+    },
     saldoLiquido:              0,
   };
 
   movimentacoes: UltimaMovimentacao[] = [];
 
   get totalDespesas() {
-    return this.resumo.manutencoes.custo + this.resumo.abastecimentos.custo + this.resumo.custosFixos.custo;
+    return this.resumo.manutencoes.custo + this.resumo.abastecimentos.custo + this.resumo.custosFixos.custo + this.resumo.salarios.custo;
   }
 
   ngOnInit(): void {

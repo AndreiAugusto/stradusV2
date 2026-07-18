@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Menu } from '../../components/menu/menu';
 import { OficinaModel } from '../../../models/oficina.model';
 import { OficinaService } from '../../../services/oficina.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-oficina',
@@ -24,7 +25,7 @@ export class Oficina {
     nomeOficina: new FormControl('', [Validators.required]),
   });
 
-  constructor(private service: OficinaService) {}
+  constructor(private service: OficinaService, private toast: ToastService) {}
 
   ngOnInit() {
     this.carregar();
@@ -47,7 +48,11 @@ export class Oficina {
   deletar(id?: number) {
     if (!id || !confirm('Deseja deletar esta oficina?')) return;
     this.service.deletar(id).subscribe({
-      next: () => { this.oficinas = this.oficinas.filter(o => o.id !== id); },
+      next: (res) => {
+        this.toast.deResposta(res);
+        this.oficinas = this.oficinas.filter(o => o.id !== id);
+      },
+      error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
   }
 
@@ -81,12 +86,14 @@ export class Oficina {
       : this.service.criar(payload);
 
     request.subscribe({
-      next: () => {
+      next: (res) => {
+        this.toast.deResposta(res);
         this.salvando = false;
         this.showForm = false;
         this.carregar();
       },
       error: () => {
+        this.toast.erro('Erro ao comunicar com o servidor.');
         this.salvando = false;
       },
     });

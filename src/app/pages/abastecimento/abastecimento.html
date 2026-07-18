@@ -58,7 +58,9 @@
                 <th>#</th>
                 <th>Data</th>
                 <th>Caminhão</th>
+                <th>Km</th>
                 <th>Litros</th>
+                <th>Consumo (km/L)</th>
                 <th>Custo Total</th>
                 <th>Ações</th>
               </tr>
@@ -68,7 +70,9 @@
                 <td style="color: var(--color-text-muted)">{{ ab.id }}</td>
                 <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ ab.data  | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
                 <td style="font-size: 0.875rem; font-weight: 600">{{ ab.placa }}</td>
-                <td style="font-size: 0.875rem">{{ ab.litros }} L</td>
+                <td style="font-size: 0.875rem">{{ ab.quilometragem ? (ab.quilometragem | number:'1.0-0':'pt-BR') : '—' }}</td>
+                <td style="font-size: 0.875rem">{{ ab.litros ? (ab.litros + ' L') : '—' }}</td>
+                <td style="font-size: 0.875rem">{{ ab.id && consumoPorId[ab.id] ? (consumoPorId[ab.id] | number:'1.1-1':'pt-BR') + ' km/L' : '—' }}</td>
                 <td class="fw-semibold" style="color: #EF4444">
                   {{ ab.custoTotal | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
                 </td>
@@ -82,14 +86,14 @@
                 </td>
               </tr>
               <tr *ngIf="abastecimentos.length === 0">
-                <td colspan="6" class="text-center py-4" style="color: var(--color-text-muted)">
+                <td colspan="8" class="text-center py-4" style="color: var(--color-text-muted)">
                   Nenhum abastecimento registrado.
                 </td>
               </tr>
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="6" class="text-center py-4">
+                <td colspan="8" class="text-center py-4">
                   <div class="spinner-border" style="color: var(--color-primary)" role="status">
                     <span class="visually-hidden">Carregando...</span>
                   </div>
@@ -123,19 +127,27 @@
         </div>
 
         <div class="row">
-          <div class="col-sm-4 mb-3">
+          <div class="col-sm-6 mb-3">
             <label class="form-label">Data</label>
             <input type="date" class="form-control" formControlName="data">
           </div>
-          <div class="col-sm-4 mb-3">
-            <label class="form-label">Litros</label>
-            <input type="number" step="0.01" min="0" class="form-control" formControlName="litros">
-          </div>
-          <div class="col-sm-4 mb-3">
+          <div class="col-sm-6 mb-3">
             <label class="form-label">Custo Total (R$)</label>
             <input type="number" step="0.01" min="0" class="form-control" formControlName="custoTotal">
           </div>
         </div>
+
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Litros (opcional)</label>
+            <input type="number" step="0.01" min="0" class="form-control" formControlName="litros">
+          </div>
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Quilometragem (opcional)</label>
+            <input type="number" step="1" min="0" class="form-control" formControlName="quilometragem" placeholder="Ex: 85400">
+          </div>
+        </div>
+        <div class="form-text">Informe litros e quilometragem para calcular automaticamente o consumo (km/L) do caminhão.</div>
       </div>
 
       <div class="modal-panel-footer">

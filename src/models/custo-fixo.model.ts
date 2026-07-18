@@ -9,3 +9,11 @@ export interface CustoFixoModel {
   dataFim?: string | null;
   placaCaminhao?: string;
 }
+
+export interface CustoFixoAjusteModel {
+  id: number;
+  custoFixoId: number;
+  ano: number;
+  mes: number;
+  valor: number;
+}

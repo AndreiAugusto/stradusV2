@@ -1,5 +1,5 @@
 export interface ExtratoItem {
-  tipo: 'frete' | 'abastecimento' | 'manutencao' | 'custo-fixo';
+  tipo: 'frete' | 'abastecimento' | 'manutencao' | 'custo-fixo' | 'salario-motorista';
   data: string;
   placa: string | null;
   motorista: string | null;

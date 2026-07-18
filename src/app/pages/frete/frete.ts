@@ -12,6 +12,7 @@ import { CidadeModel } from '../../../models/cidade.model';
 import { CidadeService } from '../../../services/cidade.service';
 import { CargaModel } from '../../../models/carga.model';
 import { CargaService } from '../../../services/carga.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-frete',
@@ -39,7 +40,7 @@ export class Frete {
     data:                  new FormControl('', [Validators.required]),
     caminhaoId:            new FormControl<number | null>(null, [Validators.required]),
     motoristaId:           new FormControl<number | null>(null, [Validators.required]),
-    porcentagemMotorista:  new FormControl<number>(30, [Validators.required, Validators.min(0), Validators.max(100)]),
+    porcentagemMotorista:  new FormControl<number>(12, [Validators.required, Validators.min(0), Validators.max(100)]),
     origemId:              new FormControl<number | null>(null),
     destinoId:             new FormControl<number | null>(null),
     cargaId:               new FormControl<number | null>(null),
@@ -55,6 +56,7 @@ export class Frete {
     private motoristaService: MotoristaService,
     private cidadeService: CidadeService,
     private cargaService: CargaService,
+    private toast: ToastService,
   ) {}
 
   ngOnInit() {
@@ -82,7 +84,11 @@ export class Frete {
   deletar(id?: number) {
     if (!id || !confirm('Deseja deletar este frete?')) return;
     this.service.deletar(id).subscribe({
-      next: () => { this.fretes = this.fretes.filter(f => f.id !== id); },
+      next: (res) => {
+        this.toast.deResposta(res);
+        this.fretes = this.fretes.filter(f => f.id !== id);
+      },
+      error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
   }
 
@@ -90,7 +96,7 @@ export class Frete {
     this.editandoId = null;
     this.form.reset({
       descricao: '', valor: null, data: '', caminhaoId: null, motoristaId: null,
-      porcentagemMotorista: 30, origemId: null, destinoId: null, cargaId: null,
+      porcentagemMotorista: 12, origemId: null, destinoId: null, cargaId: null,
     });
     this.showForm = true;
   }
@@ -103,7 +109,7 @@ export class Frete {
       data: item.data?.slice(0, 10),
       caminhaoId: item.caminhaoId,
       motoristaId: item.motoristaId,
-      porcentagemMotorista: item.porcentagemMotorista ?? 30,
+      porcentagemMotorista: item.porcentagemMotorista ?? 12,
       origemId: item.origem ?? null,
       destinoId: item.destino ?? null,
       cargaId: item.carga ?? null,
@@ -140,12 +146,14 @@ export class Frete {
       : this.service.criar(payload);
 
     request.subscribe({
-      next: () => {
+      next: (res) => {
+        this.toast.deResposta(res);
         this.salvando = false;
         this.showForm = false;
         this.carregar();
       },
       error: () => {
+        this.toast.erro('Erro ao comunicar com o servidor.');
         this.salvando = false;
       },
     });

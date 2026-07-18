@@ -1,0 +1,121 @@
+<div class="app-layout">
+  <app-menu></app-menu>
+
+  <main class="page-content">
+
+    <div class="page-header d-flex justify-content-between align-items-start">
+      <div>
+        <h1>Salários</h1>
+        <p class="page-subtitle">Comissão dos motoristas calculada a partir dos fretes do mês</p>
+      </div>
+    </div>
+
+    <div *ngIf="erro" class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Erro ao carregar salários.
+    </div>
+
+    <!-- Filtro de mês -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-4 col-lg-3">
+            <label class="form-label">Mês</label>
+            <select class="form-select" [(ngModel)]="mesSelecionado" (change)="carregar()">
+              <option *ngFor="let m of meses" [ngValue]="m.valor">{{ m.nome }}</option>
+            </select>
+          </div>
+          <div class="col-sm-4 col-lg-3">
+            <label class="form-label">Ano</label>
+            <select class="form-select" [(ngModel)]="anoSelecionado" (change)="carregar()">
+              <option *ngFor="let a of anos" [ngValue]="a">{{ a }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-income">
+          <div class="kpi-label">Valor Bruto Transportado</div>
+          <div class="kpi-value" style="color: #10B981">
+            {{ totalBruto | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub"><i class="bi bi-box-seam" style="color:#10B981"></i> {{ totalFretes }} fretes no mês</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-expense">
+          <div class="kpi-label">Total de Salários</div>
+          <div class="kpi-value" style="color: #EF4444">
+            {{ totalSalarios | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </div>
+          <div class="kpi-sub"><i class="bi bi-cash-coin" style="color:#EF4444"></i> Comissão total do mês</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="kpi-card kpi-primary">
+          <div class="kpi-label">Motoristas Ativos</div>
+          <div class="kpi-value">{{ salarios.length }}</div>
+          <div class="kpi-sub"><i class="bi bi-person-badge" style="color:#3B82F6"></i> Cadastrados</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th style="text-align: left !important">Motorista</th>
+                <th>Nº Fretes</th>
+                <th>Valor Bruto Transportado</th>
+                <th>% Média</th>
+                <th>Salário (Comissão)</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="!isLoading">
+              <tr *ngFor="let s of salarios">
+                <td style="text-align: left !important; font-weight: 600">{{ s.nomeMotorista }}</td>
+                <td>{{ s.totalFretes }}</td>
+                <td>{{ s.totalFretesBruto | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                <td>{{ s.totalFretesBruto ? ((s.totalReceber / s.totalFretesBruto) * 100 | number:'1.0-1':'pt-BR') + '%' : '—' }}</td>
+                <td class="fw-semibold" style="color: #EF4444">
+                  {{ s.totalReceber | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                </td>
+              </tr>
+              <tr *ngIf="salarios.length === 0">
+                <td colspan="5" class="text-center py-4" style="color: var(--color-text-muted)">
+                  Nenhum motorista cadastrado.
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="isLoading">
+              <tr>
+                <td colspan="5" class="text-center py-4">
+                  <div class="spinner-border" style="color: var(--color-primary)" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="!isLoading && salarios.length > 0">
+              <tr style="font-weight: 700">
+                <td style="text-align: left !important">Total</td>
+                <td>{{ totalFretes }}</td>
+                <td>{{ totalBruto | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                <td></td>
+                <td style="color: #EF4444">{{ totalSalarios | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

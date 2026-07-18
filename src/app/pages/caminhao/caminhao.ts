@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Menu } from '../../components/menu/menu';
 import { CaminhaoModel } from '../../../models/caminhao.model';
 import { CaminhaoService } from '../../../services/caminhao.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-caminhao',
@@ -26,7 +27,7 @@ export class Caminhao {
     placa:  new FormControl('', [Validators.required]),
   });
 
-  constructor(private service: CaminhaoService) {}
+  constructor(private service: CaminhaoService, private toast: ToastService) {}
 
   ngOnInit() {
     this.carregar();
@@ -49,7 +50,11 @@ export class Caminhao {
   deletar(id?: number) {
     if (!id || !confirm('Deseja deletar este caminhão?')) return;
     this.service.deletar(id).subscribe({
-      next: () => { this.caminhoes = this.caminhoes.filter(c => c.id !== id); },
+      next: (res) => {
+        this.toast.deResposta(res);
+        this.caminhoes = this.caminhoes.filter(c => c.id !== id);
+      },
+      error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
   }
 
@@ -92,12 +97,14 @@ export class Caminhao {
       : this.service.criar(payload);
 
     request.subscribe({
-      next: () => {
+      next: (res) => {
+        this.toast.deResposta(res);
         this.salvando = false;
         this.showForm = false;
         this.carregar();
       },
       error: () => {
+        this.toast.erro('Erro ao comunicar com o servidor.');
         this.salvando = false;
       },
     });

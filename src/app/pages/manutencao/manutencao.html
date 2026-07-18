@@ -173,10 +173,11 @@
           </div>
           <div class="col-sm-6 mb-3">
             <label class="form-label">Oficina</label>
-            <select class="form-select" formControlName="oficinaId">
-              <option [ngValue]="null" disabled>Selecione...</option>
-              <option *ngFor="let of of oficinas" [ngValue]="of.id">{{ of.nomeOficina }}</option>
-            </select>
+            <input type="text" class="form-control" formControlName="oficinaNome" list="oficinas-sugeridas" placeholder="Digite ou selecione uma oficina">
+            <datalist id="oficinas-sugeridas">
+              <option *ngFor="let of of oficinas" [value]="of.nomeOficina"></option>
+            </datalist>
+            <div class="form-text">Se a oficina não existir ainda, ela é criada automaticamente.</div>
           </div>
         </div>
 

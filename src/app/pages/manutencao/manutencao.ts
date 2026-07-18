@@ -8,6 +8,7 @@ import { CaminhaoModel } from '../../../models/caminhao.model';
 import { CaminhaoService } from '../../../services/caminhao.service';
 import { OficinaModel } from '../../../models/oficina.model';
 import { OficinaService } from '../../../services/oficina.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-manutencao',
@@ -35,7 +36,7 @@ export class Manutencao {
     custo:          new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
     data:           new FormControl('', [Validators.required]),
     caminhaoId:     new FormControl<number | null>(null, [Validators.required]),
-    oficinaId:      new FormControl<number | null>(null, [Validators.required]),
+    oficinaNome:    new FormControl('', [Validators.required]),
     numeroParcelas: new FormControl<number>(1, [Validators.required, Validators.min(1)]),
   });
 
@@ -45,6 +46,7 @@ export class Manutencao {
     private service: ManutencaoService,
     private caminhaoService: CaminhaoService,
     private oficinaService: OficinaService,
+    private toast: ToastService,
   ) {}
 
   ngOnInit() {
@@ -70,13 +72,17 @@ export class Manutencao {
   deletar(id?: number) {
     if (!id || !confirm('Deseja deletar esta manutenção?')) return;
     this.service.deletar(id).subscribe({
-      next: () => { this.manutencoes = this.manutencoes.filter(m => m.id !== id); },
+      next: (res) => {
+        this.toast.deResposta(res);
+        this.manutencoes = this.manutencoes.filter(m => m.id !== id);
+      },
+      error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
   }
 
   abrirNovo() {
     this.editandoId = null;
-    this.form.reset({ descricao: '', custo: null, data: '', caminhaoId: null, oficinaId: null, numeroParcelas: 1 });
+    this.form.reset({ descricao: '', custo: null, data: '', caminhaoId: null, oficinaNome: '', numeroParcelas: 1 });
     this.form.get('custo')?.enable();
     this.form.get('data')?.enable();
     this.form.get('numeroParcelas')?.enable();
@@ -90,7 +96,7 @@ export class Manutencao {
       custo: item.custo ?? null,
       data: item.data?.slice(0, 10),
       caminhaoId: item.caminhaoId ?? null,
-      oficinaId: item.oficinaId ?? null,
+      oficinaNome: item.nomeOficina ?? '',
       numeroParcelas: item.numeroParcelas ?? 1,
     });
     // Custo, data e parcelas já geraram as parcelas no banco — trocar aqui
@@ -106,40 +112,70 @@ export class Manutencao {
     this.showForm = false;
   }
 
+  /** Acha a oficina digitada na lista já carregada (case/espaço-insensitive) ou cria uma nova. */
+  private resolverOficinaId(nomeDigitado: string, aoResolver: (oficinaId: number) => void) {
+    const nome = nomeDigitado.trim();
+    const existente = this.oficinas.find((o) => o.nomeOficina.trim().toLowerCase() === nome.toLowerCase());
+    if (existente) {
+      aoResolver(existente.id!);
+      return;
+    }
+    this.oficinaService.criar({ nomeOficina: nome }).subscribe({
+      next: (res: any) => {
+        if (res?.error || !res?.id) {
+          this.toast.erro(res?.message ?? 'Erro ao criar oficina.');
+          this.salvando = false;
+          return;
+        }
+        this.oficinas = [...this.oficinas, { id: res.id, nomeOficina: nome }];
+        aoResolver(res.id);
+      },
+      error: () => {
+        this.toast.erro('Erro ao comunicar com o servidor.');
+        this.salvando = false;
+      },
+    });
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const valorForm = this.form.value;
-    const payload: ManutencaoModel = {
-      descricao: valorForm.descricao!,
-      caminhaoId: valorForm.caminhaoId!,
-      oficinaId: valorForm.oficinaId!,
-    } as ManutencaoModel;
-
-    if (!this.editandoId) {
-      // Custo, data e parcelas só são definidos na criação — ver abrirEdicao().
-      payload.custo = Number(valorForm.custo);
-      payload.data = valorForm.data!;
-      payload.numeroParcelas = Number(valorForm.numeroParcelas) || 1;
-    }
-
     this.salvando = true;
-    const request = this.editandoId
-      ? this.service.atualizar(this.editandoId, payload)
-      : this.service.criar(payload);
+    const valorForm = this.form.value;
 
-    request.subscribe({
-      next: () => {
-        this.salvando = false;
-        this.showForm = false;
-        this.carregar();
-      },
-      error: () => {
-        this.salvando = false;
-      },
+    this.resolverOficinaId(valorForm.oficinaNome!, (oficinaId) => {
+      const payload: ManutencaoModel = {
+        descricao: valorForm.descricao!,
+        caminhaoId: valorForm.caminhaoId!,
+        oficinaId,
+      } as ManutencaoModel;
+
+      if (!this.editandoId) {
+        // Custo, data e parcelas só são definidos na criação — ver abrirEdicao().
+        payload.custo = Number(valorForm.custo);
+        payload.data = valorForm.data!;
+        payload.numeroParcelas = Number(valorForm.numeroParcelas) || 1;
+      }
+
+      const request = this.editandoId
+        ? this.service.atualizar(this.editandoId, payload)
+        : this.service.criar(payload);
+
+      request.subscribe({
+        next: (res) => {
+          this.toast.deResposta(res);
+          this.salvando = false;
+          this.showForm = false;
+          this.carregar();
+        },
+        error: () => {
+          this.toast.erro('Erro ao comunicar com o servidor.');
+          this.salvando = false;
+        },
+      });
     });
   }
 
@@ -165,7 +201,8 @@ export class Manutencao {
   togglePago(parcela: ManutencaoParcelaModel, manutencaoId: number) {
     const novoStatus = !parcela.pago;
     this.service.pagarParcela(parcela.id, novoStatus).subscribe({
-      next: () => {
+      next: (res) => {
+        this.toast.deResposta(res);
         parcela.pago = novoStatus;
         const manutencao = this.manutencoes.find(m => m.id === manutencaoId);
         if (manutencao) {
@@ -173,6 +210,7 @@ export class Manutencao {
           manutencao.parcelasPagas = pagas;
         }
       },
+      error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
   }
 }

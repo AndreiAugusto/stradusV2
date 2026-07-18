@@ -4,6 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Menu } from '../../components/menu/menu';
 import { MotoristaModel } from '../../../models/motorista.model';
 import { MotoristaService } from '../../../services/motorista.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-motorista',
@@ -26,7 +27,7 @@ export class Motorista {
     nCarteira:     new FormControl(''),
   });
 
-  constructor(private service: MotoristaService) {}
+  constructor(private service: MotoristaService, private toast: ToastService) {}
 
   ngOnInit() {
     this.carregar();
@@ -49,7 +50,11 @@ export class Motorista {
   deletar(id?: number) {
     if (!id || !confirm('Deseja deletar este motorista?')) return;
     this.service.deletar(id).subscribe({
-      next: () => { this.motoristas = this.motoristas.filter(m => m.id !== id); },
+      next: (res) => {
+        this.toast.deResposta(res);
+        this.motoristas = this.motoristas.filter(m => m.id !== id);
+      },
+      error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
   }
 
@@ -92,12 +97,14 @@ export class Motorista {
       : this.service.criar(payload);
 
     request.subscribe({
-      next: () => {
+      next: (res) => {
+        this.toast.deResposta(res);
         this.salvando = false;
         this.showForm = false;
         this.carregar();
       },
       error: () => {
+        this.toast.erro('Erro ao comunicar com o servidor.');
         this.salvando = false;
       },
     });

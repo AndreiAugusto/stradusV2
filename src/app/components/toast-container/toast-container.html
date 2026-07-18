@@ -1,0 +1,12 @@
+<div class="toast-stack">
+  <div
+    *ngFor="let toast of toastService.toasts()"
+    class="toast-item"
+    [class.toast-sucesso]="toast.tipo === 'sucesso'"
+    [class.toast-erro]="toast.tipo === 'erro'"
+  >
+    <i class="bi" [ngClass]="toast.tipo === 'sucesso' ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+    <span>{{ toast.mensagem }}</span>
+    <button type="button" class="toast-close" (click)="toastService.remover(toast.id)">&times;</button>
+  </div>
+</div>

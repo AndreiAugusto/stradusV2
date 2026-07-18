@@ -56,41 +56,102 @@
                 <th>Início</th>
                 <th>Fim</th>
                 <th>Valor</th>
+                <th>Ajustes</th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <tr *ngFor="let c of custosFixos">
-                <td style="color: var(--color-text-muted)">{{ c.id }}</td>
-                <td style="text-align: left !important; font-size: 0.875rem">{{ c.descricao }}</td>
-                <td style="font-size: 0.875rem">{{ c.categoria || '—' }}</td>
-                <td style="font-size: 0.875rem; font-weight: 600">{{ c.placaCaminhao || 'Geral' }}</td>
-                <td style="font-size: 0.875rem">Dia {{ c.diaVencimento }}</td>
-                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ c.dataInicio | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
-                <td style="color: var(--color-text-muted); font-size: 0.875rem">
-                  {{ c.dataFim ? (c.dataFim | date:'dd/MM/yyyy':'UTC':'pt-BR') : 'Indeterminado' }}
-                </td>
-                <td class="fw-semibold" style="color: #EF4444">
-                  {{ c.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
-                </td>
-                <td>
-                  <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(c)">
-                    <i class="bi bi-pencil"></i>
-                  </button>
-                  <button class="btn btn-sm btn-danger" (click)="deletar(c.id)">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </td>
-              </tr>
+              <ng-container *ngFor="let c of custosFixos">
+                <tr>
+                  <td style="color: var(--color-text-muted)">{{ c.id }}</td>
+                  <td style="text-align: left !important; font-size: 0.875rem">{{ c.descricao }}</td>
+                  <td style="font-size: 0.875rem">{{ c.categoria || '—' }}</td>
+                  <td style="font-size: 0.875rem; font-weight: 600">{{ c.placaCaminhao || 'Geral' }}</td>
+                  <td style="font-size: 0.875rem">Dia {{ c.diaVencimento }}</td>
+                  <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ c.dataInicio | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
+                  <td style="color: var(--color-text-muted); font-size: 0.875rem">
+                    {{ c.dataFim ? (c.dataFim | date:'dd/MM/yyyy':'UTC':'pt-BR') : 'Indeterminado' }}
+                  </td>
+                  <td class="fw-semibold" style="color: #EF4444">
+                    {{ c.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+                  </td>
+                  <td>
+                    <button class="tipo-badge" style="background: var(--color-primary); cursor: pointer; border: none" (click)="toggleAjustes(c)">
+                      {{ ajustesPorCustoFixo[c.id!]?.length ?? 0 }}
+                      <i class="bi" [ngClass]="expandidoId === c.id ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                    </button>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(c)">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" (click)="deletar(c.id)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="expandidoId === c.id">
+                  <td [attr.colspan]="10" style="background: #F8FAFC; text-align: left !important">
+                    <div *ngIf="carregandoAjustes && !ajustesPorCustoFixo[c.id!]" class="py-2 text-center">
+                      <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
+                    </div>
+                    <div *ngIf="ajustesPorCustoFixo[c.id!]">
+                      <table class="table table-sm mb-2" *ngIf="ajustesPorCustoFixo[c.id!].length > 0">
+                        <thead>
+                          <tr>
+                            <th>Mês/Ano</th>
+                            <th>Valor Ajustado</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr *ngFor="let aj of ajustesPorCustoFixo[c.id!]">
+                            <td>{{ nomeMes(aj.mes) }}/{{ aj.ano }}</td>
+                            <td>{{ aj.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                            <td>
+                              <button class="btn btn-sm btn-danger" (click)="removerAjuste(aj)">
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <div *ngIf="ajustesPorCustoFixo[c.id!].length === 0" class="text-muted mb-2" style="font-size: 0.875rem">
+                        Nenhum ajuste cadastrado — o valor padrão ({{ c.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}) vale em todos os meses.
+                      </div>
+
+                      <div class="d-flex align-items-end gap-2">
+                        <div>
+                          <label class="form-label mb-1" style="font-size: 0.75rem">Mês</label>
+                          <select class="form-select form-select-sm" [(ngModel)]="novoAjuste.mes">
+                            <option *ngFor="let m of meses" [ngValue]="m.valor">{{ m.nome }}</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label class="form-label mb-1" style="font-size: 0.75rem">Ano</label>
+                          <input type="number" class="form-control form-control-sm" style="width: 90px" [(ngModel)]="novoAjuste.ano">
+                        </div>
+                        <div>
+                          <label class="form-label mb-1" style="font-size: 0.75rem">Novo Valor (R$)</label>
+                          <input type="number" step="0.01" class="form-control form-control-sm" style="width: 130px" [(ngModel)]="novoAjuste.valor">
+                        </div>
+                        <button class="btn btn-sm btn-primary-custom" [disabled]="salvandoAjuste" (click)="salvarAjuste(c.id!)">
+                          {{ salvandoAjuste ? 'Salvando...' : 'Salvar ajuste' }}
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
               <tr *ngIf="custosFixos.length === 0">
-                <td colspan="9" class="text-center py-4" style="color: var(--color-text-muted)">
+                <td colspan="10" class="text-center py-4" style="color: var(--color-text-muted)">
                   Nenhum custo fixo cadastrado.
                 </td>
               </tr>
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="9" class="text-center py-4">
+                <td colspan="10" class="text-center py-4">
                   <div class="spinner-border" style="color: var(--color-primary)" role="status">
                     <span class="visually-hidden">Carregando...</span>
                   </div>
