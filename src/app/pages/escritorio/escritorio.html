@@ -1,0 +1,146 @@
+<div class="app-layout">
+  <app-menu></app-menu>
+
+  <main class="page-content">
+
+    <div class="page-header d-flex justify-content-between align-items-start">
+      <div>
+        <h1>Escritório Virtual</h1>
+        <p class="page-subtitle">Documentos da empresa, caminhões, motoristas e fazendas</p>
+      </div>
+      <button class="btn btn-primary-custom" (click)="abrirNovo()">
+        <i class="bi bi-cloud-upload"></i> Enviar Documento
+      </button>
+    </div>
+
+    <div *ngIf="erro" class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Erro ao carregar documentos.
+    </div>
+
+    <!-- Abas de tipo -->
+    <div class="doc-tabs mb-3">
+      <button
+        *ngFor="let t of tipos"
+        class="doc-tab"
+        [class.active]="tipoAtivo === t.valor"
+        (click)="selecionarTipo(t.valor)">
+        <i class="bi" [ngClass]="t.icone"></i>
+        {{ t.label }}
+      </button>
+    </div>
+
+    <!-- Filtro por entidade -->
+    <div *ngIf="tipoAtivo !== 'empresa'" class="mb-3" style="max-width: 320px">
+      <select class="form-select" [(ngModel)]="entidadeFiltro" [ngModelOptions]="{standalone: true}" (change)="carregar()">
+        <option [ngValue]="null">Todos</option>
+        <option *ngFor="let e of entidadesDoFiltro" [ngValue]="e.id">{{ e.label }}</option>
+      </select>
+    </div>
+
+    <!-- Lista de documentos -->
+    <div class="row g-3" *ngIf="!isLoading">
+      <div class="col-sm-6 col-lg-4 col-xl-3" *ngFor="let doc of documentos">
+        <div class="doc-card">
+          <div class="doc-card-icon">
+            <i class="bi" [ngClass]="iconeArquivo(doc.mimeType)"></i>
+          </div>
+          <div class="doc-card-body">
+            <div class="doc-card-titulo" [title]="doc.titulo">{{ doc.titulo }}</div>
+            <div class="doc-card-meta">
+              <span class="tipo-badge" style="background: var(--color-primary)" *ngIf="doc.categoria">{{ doc.categoria }}</span>
+              <span *ngIf="tipoAtivo !== 'empresa'">{{ nomeEntidade(doc) }}</span>
+            </div>
+            <div class="doc-card-sub">
+              {{ doc.criadoEm | date:'dd/MM/yyyy':'':'pt-BR' }} · {{ formatarTamanho(doc.tamanho) }}
+            </div>
+          </div>
+          <div class="doc-card-actions">
+            <button class="btn btn-sm btn-edit" [disabled]="abrindoId === doc.id" (click)="abrir(doc)">
+              <i class="bi bi-box-arrow-up-right"></i> {{ abrindoId === doc.id ? 'Abrindo...' : 'Abrir' }}
+            </button>
+            <button class="btn btn-sm btn-danger" (click)="deletar(doc)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12" *ngIf="documentos.length === 0">
+        <div class="card">
+          <div class="card-body text-center py-5" style="color: var(--color-text-muted)">
+            <i class="bi bi-inbox" style="font-size: 2rem"></i>
+            <p class="mb-0 mt-2">Nenhum documento enviado ainda.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center py-5" *ngIf="isLoading">
+      <div class="spinner-border" style="color: var(--color-primary)" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal de envio -->
+<div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel-header">
+      <h5>Enviar Documento</h5>
+      <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="modal-panel-body">
+        <div class="mb-3">
+          <label class="form-label">Título</label>
+          <input type="text" class="form-control" formControlName="titulo" placeholder="Ex: CRLV 2026">
+        </div>
+
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" formControlName="tipo">
+              <option *ngFor="let t of tipos" [ngValue]="t.valor">{{ t.label }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Categoria (opcional)</label>
+            <input type="text" class="form-control" formControlName="categoria" list="categorias-doc-sugeridas" placeholder="Ex: CRLV">
+            <datalist id="categorias-doc-sugeridas">
+              <option *ngFor="let cat of categoriasSugeridas" [value]="cat"></option>
+            </datalist>
+          </div>
+        </div>
+
+        <div class="mb-3" *ngIf="form.value.tipo !== 'empresa'">
+          <label class="form-label">
+            {{ form.value.tipo === 'caminhao' ? 'Caminhão' : form.value.tipo === 'motorista' ? 'Motorista' : 'Fazenda' }}
+            (opcional)
+          </label>
+          <select class="form-select" formControlName="entidadeId">
+            <option [ngValue]="null">—</option>
+            <option *ngFor="let e of entidadesDoTipoForm" [ngValue]="e.id">{{ e.label }}</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Arquivo (PDF ou imagem, até 4MB)</label>
+          <input type="file" class="form-control" accept=".pdf,image/*" (change)="onArquivoSelecionado($event)">
+          <div class="form-text text-danger" *ngIf="arquivoErro">{{ arquivoErro }}</div>
+          <div class="form-text" *ngIf="arquivoSelecionado && !arquivoErro">{{ arquivoSelecionado.name }}</div>
+        </div>
+      </div>
+
+      <div class="modal-panel-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          {{ salvando ? 'Enviando...' : 'Enviar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

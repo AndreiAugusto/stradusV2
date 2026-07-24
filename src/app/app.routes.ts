@@ -56,4 +56,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/motorista/motorista').then(m => m.Motorista),
   },
+  {
+    path: 'fazenda',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/fazenda/fazenda').then(m => m.Fazenda),
+  },
+  {
+    path: 'escritorio',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/escritorio/escritorio').then(m => m.Escritorio),
+  },
 ];

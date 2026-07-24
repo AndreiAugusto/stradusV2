@@ -1,0 +1,226 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Menu } from '../../components/menu/menu';
+import { DocumentoModel, TipoDocumento } from '../../../models/documento.model';
+import { DocumentoService } from '../../../services/documento.service';
+import { CaminhaoModel } from '../../../models/caminhao.model';
+import { CaminhaoService } from '../../../services/caminhao.service';
+import { MotoristaModel } from '../../../models/motorista.model';
+import { MotoristaService } from '../../../services/motorista.service';
+import { FazendaModel } from '../../../models/fazenda.model';
+import { FazendaService } from '../../../services/fazenda.service';
+import { ToastService } from '../../../services/toast.service';
+
+@Component({
+  selector: 'app-escritorio',
+  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule],
+  templateUrl: './escritorio.html',
+  styleUrl: './escritorio.scss',
+})
+export class Escritorio {
+  isLoading = true;
+  erro = false;
+  documentos: DocumentoModel[] = [];
+
+  caminhoes: CaminhaoModel[] = [];
+  motoristas: MotoristaModel[] = [];
+  fazendas: FazendaModel[] = [];
+
+  tipos: { valor: TipoDocumento; label: string; icone: string }[] = [
+    { valor: 'empresa', label: 'Empresa', icone: 'bi-building' },
+    { valor: 'caminhao', label: 'Caminhões', icone: 'bi-truck' },
+    { valor: 'motorista', label: 'Motoristas', icone: 'bi-person-badge' },
+    { valor: 'fazenda', label: 'Fazendas', icone: 'bi-tree' },
+  ];
+
+  tipoAtivo: TipoDocumento = 'empresa';
+  entidadeFiltro: number | null = null;
+
+  showForm = false;
+  salvando = false;
+  arquivoSelecionado: File | null = null;
+  arquivoErro = '';
+
+  form = new FormGroup({
+    titulo:      new FormControl('', [Validators.required]),
+    categoria:   new FormControl(''),
+    tipo:        new FormControl<TipoDocumento>('empresa', [Validators.required]),
+    entidadeId:  new FormControl<number | null>(null),
+  });
+
+  /**
+   * Listas calculadas explicitamente (não getters): usadas dentro de <select formControlName>,
+   * um getter que devolve um array novo a cada ciclo de change detection trava o
+   * SelectControlValueAccessor do Angular num loop (erro NG0103).
+   */
+  categoriasSugeridas: string[] = [];
+  entidadesDoTipoForm: { id: number; label: string }[] = [];
+  entidadesDoFiltro: { id: number; label: string }[] = [];
+
+  constructor(
+    private service: DocumentoService,
+    private caminhaoService: CaminhaoService,
+    private motoristaService: MotoristaService,
+    private fazendaService: FazendaService,
+    private toast: ToastService,
+  ) {}
+
+  ngOnInit() {
+    this.carregar();
+    this.caminhaoService.listar().subscribe({ next: (data) => { this.caminhoes = data; this.atualizarListasDeEntidades(); } });
+    this.motoristaService.listar().subscribe({ next: (data) => { this.motoristas = data; this.atualizarListasDeEntidades(); } });
+    this.fazendaService.listar().subscribe({ next: (data) => { this.fazendas = data; this.atualizarListasDeEntidades(); } });
+
+    this.form.get('tipo')!.valueChanges.subscribe(() => this.atualizarEntidadesDoTipoForm());
+  }
+
+  private listaEntidades(tipo: TipoDocumento): { id: number; label: string }[] {
+    if (tipo === 'caminhao') return this.caminhoes.map(c => ({ id: c.id!, label: `${c.placa} — ${c.modelo}` }));
+    if (tipo === 'motorista') return this.motoristas.map(m => ({ id: m.id!, label: m.nomeMotorista }));
+    if (tipo === 'fazenda') return this.fazendas.map(f => ({ id: f.id!, label: f.nome }));
+    return [];
+  }
+
+  private atualizarListasDeEntidades() {
+    this.entidadesDoFiltro = this.listaEntidades(this.tipoAtivo);
+    this.atualizarEntidadesDoTipoForm();
+  }
+
+  private atualizarEntidadesDoTipoForm() {
+    this.entidadesDoTipoForm = this.listaEntidades(this.form.value.tipo ?? 'empresa');
+  }
+
+  private atualizarCategoriasSugeridas() {
+    const set = new Set(this.documentos.map(d => d.categoria).filter((c): c is string => !!c));
+    this.categoriasSugeridas = [...set];
+  }
+
+  selecionarTipo(tipo: TipoDocumento) {
+    this.tipoAtivo = tipo;
+    this.entidadeFiltro = null;
+    this.entidadesDoFiltro = this.listaEntidades(tipo);
+    this.carregar();
+  }
+
+  carregar() {
+    this.isLoading = true;
+    this.service.listar({ tipo: this.tipoAtivo, entidadeId: this.entidadeFiltro ?? undefined }).subscribe({
+      next: (data) => {
+        this.documentos = data;
+        this.atualizarCategoriasSugeridas();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.erro = true;
+        this.isLoading = false;
+      },
+    });
+  }
+
+  abrirNovo() {
+    this.form.reset({ titulo: '', categoria: '', tipo: this.tipoAtivo, entidadeId: this.entidadeFiltro });
+    this.atualizarEntidadesDoTipoForm();
+    this.arquivoSelecionado = null;
+    this.arquivoErro = '';
+    this.showForm = true;
+  }
+
+  fecharForm() {
+    this.showForm = false;
+  }
+
+  onArquivoSelecionado(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const arquivo = input.files?.[0] ?? null;
+    this.arquivoErro = '';
+    if (arquivo && arquivo.size > 4 * 1024 * 1024) {
+      this.arquivoErro = 'Arquivo muito grande (máximo 4MB).';
+      this.arquivoSelecionado = null;
+      input.value = '';
+      return;
+    }
+    this.arquivoSelecionado = arquivo;
+  }
+
+  onSubmit() {
+    if (this.form.invalid || !this.arquivoSelecionado) {
+      this.form.markAllAsTouched();
+      if (!this.arquivoSelecionado) this.arquivoErro = 'Selecione um arquivo.';
+      return;
+    }
+
+    const valorForm = this.form.value;
+    const formData = new FormData();
+    formData.append('titulo', valorForm.titulo!);
+    if (valorForm.categoria) formData.append('categoria', valorForm.categoria);
+    formData.append('tipo', valorForm.tipo!);
+    if (valorForm.entidadeId) {
+      const campoId = valorForm.tipo === 'caminhao' ? 'caminhaoId' : valorForm.tipo === 'motorista' ? 'motoristaId' : 'fazendaId';
+      formData.append(campoId, String(valorForm.entidadeId));
+    }
+    formData.append('arquivo', this.arquivoSelecionado);
+
+    this.salvando = true;
+    this.service.enviar(formData).subscribe({
+      next: (res) => {
+        this.toast.deResposta(res);
+        this.salvando = false;
+        this.showForm = false;
+        if (valorForm.tipo === this.tipoAtivo) this.carregar();
+      },
+      error: () => {
+        this.toast.erro('Erro ao comunicar com o servidor.');
+        this.salvando = false;
+      },
+    });
+  }
+
+  abrindoId: number | null = null;
+
+  abrir(doc: DocumentoModel) {
+    if (!doc.id) return;
+    this.abrindoId = doc.id;
+    this.service.baixarArquivo(doc.id).subscribe({
+      next: (blob) => {
+        const objectUrl = URL.createObjectURL(blob);
+        window.open(objectUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+        this.abrindoId = null;
+      },
+      error: () => {
+        this.toast.erro('Erro ao abrir o documento.');
+        this.abrindoId = null;
+      },
+    });
+  }
+
+  deletar(doc: DocumentoModel) {
+    if (!doc.id || !confirm('Deseja excluir este documento?')) return;
+    this.service.deletar(doc.id).subscribe({
+      next: (res) => {
+        this.toast.deResposta(res);
+        this.documentos = this.documentos.filter(d => d.id !== doc.id);
+      },
+      error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
+    });
+  }
+
+  nomeEntidade(doc: DocumentoModel): string {
+    return doc.placaCaminhao || doc.nomeMotorista || doc.nomeFazenda || '—';
+  }
+
+  iconeArquivo(mimeType?: string): string {
+    if (!mimeType) return 'bi-file-earmark';
+    if (mimeType === 'application/pdf') return 'bi-file-earmark-pdf';
+    if (mimeType.startsWith('image/')) return 'bi-file-earmark-image';
+    return 'bi-file-earmark';
+  }
+
+  formatarTamanho(bytes?: number): string {
+    if (!bytes) return '—';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+}

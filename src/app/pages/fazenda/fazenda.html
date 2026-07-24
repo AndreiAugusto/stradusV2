@@ -1,0 +1,109 @@
+<div class="app-layout">
+  <app-menu></app-menu>
+
+  <main class="page-content">
+
+    <div class="page-header d-flex justify-content-between align-items-start">
+      <div>
+        <h1>Fazendas</h1>
+        <p class="page-subtitle">Locais de coleta de frete frequentes</p>
+      </div>
+      <button class="btn btn-primary-custom" (click)="abrirNovo()">
+        <i class="bi bi-plus-lg"></i> Adicionar Fazenda
+      </button>
+    </div>
+
+    <div *ngIf="erro" class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Erro ao carregar fazendas.
+    </div>
+
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th style="text-align: left !important">Nome</th>
+                <th>Cidade</th>
+                <th>Contato</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="!isLoading">
+              <tr *ngFor="let f of fazendas">
+                <td style="color: var(--color-text-muted)">{{ f.id }}</td>
+                <td style="text-align: left !important; font-weight: 600">{{ f.nome }}</td>
+                <td style="font-size: 0.875rem">{{ f.nomeCidade ? (f.nomeCidade + '/' + f.siglaEstado) : '—' }}</td>
+                <td style="font-size: 0.875rem">{{ f.contato || '—' }}</td>
+                <td>
+                  <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(f)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-danger" (click)="deletar(f.id)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="fazendas.length === 0">
+                <td colspan="5" class="text-center py-4" style="color: var(--color-text-muted)">
+                  Nenhuma fazenda cadastrada.
+                </td>
+              </tr>
+            </tbody>
+            <tbody *ngIf="isLoading">
+              <tr>
+                <td colspan="5" class="text-center py-4">
+                  <div class="spinner-border" style="color: var(--color-primary)" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal de criação/edição -->
+<div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel-header">
+      <h5>{{ editandoId ? 'Editar Fazenda' : 'Adicionar Fazenda' }}</h5>
+      <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="modal-panel-body">
+        <div class="mb-3">
+          <label class="form-label">Nome</label>
+          <input type="text" class="form-control" formControlName="nome" placeholder="Ex: Fazenda Santa Luzia">
+        </div>
+        <div class="row">
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Cidade (opcional)</label>
+            <select class="form-select" formControlName="cidadeId">
+              <option [ngValue]="null">—</option>
+              <option *ngFor="let cid of cidades" [ngValue]="cid.id">{{ cid.nome }}/{{ cid.siglaEstado }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6 mb-3">
+            <label class="form-label">Contato (opcional)</label>
+            <input type="text" class="form-control" formControlName="contato" placeholder="Ex: João - (65) 99999-0000">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-panel-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          {{ salvando ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
