@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -11,18 +12,17 @@ import { AuthService } from '../../../services/auth.service';
   styleUrl: './login.scss',
 })
 export class Login {
-  submitted = false;
   isLoading = false;
-  loginError = false;
 
   constructor(
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService,
   ) {}
 
   loginForm = new FormGroup({
-    email:    new FormControl(null, [Validators.required, Validators.email]),
-    password: new FormControl(null, [Validators.required]),
+    email:    new FormControl('', [Validators.required, Validators.email]),
+    password: new FormControl('', [Validators.required]),
   });
 
   ngOnInit() {
@@ -32,9 +32,6 @@ export class Login {
   }
 
   onSubmit() {
-    this.submitted = true;
-    this.loginError = false;
-
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -51,7 +48,7 @@ export class Login {
         this.router.navigate(['/home']);
       },
       error: () => {
-        this.loginError = true;
+        this.toast.erro('Email ou senha inválidos.');
         this.isLoading = false;
       },
     });
