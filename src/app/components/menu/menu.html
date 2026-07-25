@@ -1,11 +1,17 @@
-<aside class="sidebar">
+<button class="mobile-menu-toggle" type="button" (click)="toggle()" aria-label="Abrir menu">
+  <i class="bi" [class.bi-list]="!isOpen" [class.bi-x-lg]="isOpen"></i>
+</button>
+
+<div class="sidebar-backdrop" [class.open]="isOpen" (click)="close()"></div>
+
+<aside class="sidebar" [class.open]="isOpen">
 
   <div class="sidebar-brand">
     <i class="bi bi-truck-front-fill"></i>
     <span>Stradus</span>
   </div>
 
-  <nav class="sidebar-nav">
+  <nav class="sidebar-nav" (click)="close()">
     <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="sidebar-link">
       <i class="bi bi-speedometer2"></i>
       <span>Dashboard</span>

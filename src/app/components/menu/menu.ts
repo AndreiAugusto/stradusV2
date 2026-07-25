@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
@@ -8,6 +8,23 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './menu.scss',
 })
 export class Menu {
+  isOpen = false;
+
+  toggle() {
+    this.isOpen = !this.isOpen;
+  }
+
+  close() {
+    this.isOpen = false;
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    if (window.innerWidth > 991.98) {
+      this.isOpen = false;
+    }
+  }
+
   sair() {
     localStorage.removeItem('accessToken');
     window.location.href = '/';
