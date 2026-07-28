@@ -128,7 +128,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Arquivo (PDF ou imagem, até 4MB)</label>
+          <label class="form-label">Arquivo (PDF ou imagem, até 10MB)</label>
           <input type="file" class="form-control" accept=".pdf,image/*" (change)="onArquivoSelecionado($event)">
           <div class="form-text text-danger" *ngIf="arquivoErro">{{ arquivoErro }}</div>
           <div class="form-text" *ngIf="arquivoSelecionado && !arquivoErro">{{ arquivoSelecionado.name }}</div>

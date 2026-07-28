@@ -134,8 +134,8 @@ export class Escritorio {
     const input = event.target as HTMLInputElement;
     const arquivo = input.files?.[0] ?? null;
     this.arquivoErro = '';
-    if (arquivo && arquivo.size > 4 * 1024 * 1024) {
-      this.arquivoErro = 'Arquivo muito grande (máximo 4MB).';
+    if (arquivo && arquivo.size > 10 * 1024 * 1024) {
+      this.arquivoErro = 'Arquivo muito grande (máximo 10MB).';
       this.arquivoSelecionado = null;
       input.value = '';
       return;
@@ -151,29 +151,45 @@ export class Escritorio {
     }
 
     const valorForm = this.form.value;
-    const formData = new FormData();
-    formData.append('titulo', valorForm.titulo!);
-    if (valorForm.categoria) formData.append('categoria', valorForm.categoria);
-    formData.append('tipo', valorForm.tipo!);
-    if (valorForm.entidadeId) {
-      const campoId = valorForm.tipo === 'caminhao' ? 'caminhaoId' : valorForm.tipo === 'motorista' ? 'motoristaId' : 'fazendaId';
-      formData.append(campoId, String(valorForm.entidadeId));
-    }
-    formData.append('arquivo', this.arquivoSelecionado);
+    const meta = {
+      titulo: valorForm.titulo!,
+      categoria: valorForm.categoria || undefined,
+      tipo: valorForm.tipo!,
+      caminhaoId: valorForm.tipo === 'caminhao' ? valorForm.entidadeId ?? undefined : undefined,
+      motoristaId: valorForm.tipo === 'motorista' ? valorForm.entidadeId ?? undefined : undefined,
+      fazendaId: valorForm.tipo === 'fazenda' ? valorForm.entidadeId ?? undefined : undefined,
+    };
 
     this.salvando = true;
-    this.service.enviar(formData).subscribe({
+    this.service.enviarDireto(this.arquivoSelecionado, meta).subscribe({
       next: (res) => {
         this.toast.deResposta(res);
         this.salvando = false;
         this.showForm = false;
         if (valorForm.tipo === this.tipoAtivo) this.carregar();
       },
-      error: () => {
-        this.toast.erro('Erro ao comunicar com o servidor.');
+      error: (err) => {
+        this.toast.erro(this.mensagemErroEnvio(err));
         this.salvando = false;
       },
     });
+  }
+
+  private mensagemErroEnvio(err: any): string {
+    // erro do @vercel/blob/client ao buscar o token de upload — o SDK sempre usa
+    // essa mesma mensagem genérica, seja porque a sessão expirou, o tipo/tamanho
+    // do arquivo não é permitido, ou outro problema no /documento/upload-token
+    if (err instanceof Error && err.message === 'Failed to retrieve the client token') {
+      return 'Não foi possível iniciar o envio. Sua sessão pode ter expirado — tente fazer login novamente.';
+    }
+    if (err instanceof Error && err.message) {
+      return err.message;
+    }
+    // erros HTTP da nossa API (endpoint de confirmação)
+    const apiMsg = err?.error?.message;
+    if (typeof apiMsg === 'string') return apiMsg;
+    if (err?.status === 0) return 'Sem conexão com o servidor. Verifique sua internet.';
+    return 'Erro ao comunicar com o servidor.';
   }
 
   abrindoId: number | null = null;
