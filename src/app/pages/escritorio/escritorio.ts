@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Menu } from '../../components/menu/menu';
 import { DocumentoModel, TipoDocumento } from '../../../models/documento.model';
 import { DocumentoService } from '../../../services/documento.service';
@@ -39,6 +40,7 @@ export class Escritorio {
 
   showForm = false;
   salvando = false;
+  editandoId: number | null = null;
   arquivoSelecionado: File | null = null;
   arquivoErro = '';
 
@@ -64,6 +66,7 @@ export class Escritorio {
     private motoristaService: MotoristaService,
     private fazendaService: FazendaService,
     private toast: ToastService,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit() {
@@ -72,7 +75,11 @@ export class Escritorio {
     this.motoristaService.listar().subscribe({ next: (data) => { this.motoristas = data; this.atualizarListasDeEntidades(); } });
     this.fazendaService.listar().subscribe({ next: (data) => { this.fazendas = data; this.atualizarListasDeEntidades(); } });
 
-    this.form.get('tipo')!.valueChanges.subscribe(() => this.atualizarEntidadesDoTipoForm());
+    // Lê o valor emitido pelo próprio evento, não `this.form.value.tipo`: o
+    // Angular emite o valueChanges do controle filho ANTES de recalcular o
+    // `.value` agregado do FormGroup pai, então reler `this.form.value` aqui
+    // sempre pegava o tipo anterior (a lista ficava um passo atrasada).
+    this.form.get('tipo')!.valueChanges.subscribe((tipo) => this.atualizarEntidadesDoTipoForm(tipo ?? 'empresa'));
   }
 
   private listaEntidades(tipo: TipoDocumento): { id: number; label: string }[] {
@@ -84,11 +91,11 @@ export class Escritorio {
 
   private atualizarListasDeEntidades() {
     this.entidadesDoFiltro = this.listaEntidades(this.tipoAtivo);
-    this.atualizarEntidadesDoTipoForm();
+    this.atualizarEntidadesDoTipoForm(this.form.value.tipo ?? 'empresa');
   }
 
-  private atualizarEntidadesDoTipoForm() {
-    this.entidadesDoTipoForm = this.listaEntidades(this.form.value.tipo ?? 'empresa');
+  private atualizarEntidadesDoTipoForm(tipo: TipoDocumento) {
+    this.entidadesDoTipoForm = this.listaEntidades(tipo);
   }
 
   private atualizarCategoriasSugeridas() {
@@ -119,8 +126,19 @@ export class Escritorio {
   }
 
   abrirNovo() {
+    this.editandoId = null;
     this.form.reset({ titulo: '', categoria: '', tipo: this.tipoAtivo, entidadeId: this.entidadeFiltro });
-    this.atualizarEntidadesDoTipoForm();
+    this.atualizarEntidadesDoTipoForm(this.tipoAtivo);
+    this.arquivoSelecionado = null;
+    this.arquivoErro = '';
+    this.showForm = true;
+  }
+
+  abrirEdicao(doc: DocumentoModel) {
+    this.editandoId = doc.id ?? null;
+    const entidadeId = doc.caminhaoId ?? doc.motoristaId ?? doc.fazendaId ?? null;
+    this.form.reset({ titulo: doc.titulo, categoria: doc.categoria ?? '', tipo: doc.tipo, entidadeId });
+    this.atualizarEntidadesDoTipoForm(doc.tipo);
     this.arquivoSelecionado = null;
     this.arquivoErro = '';
     this.showForm = true;
@@ -144,9 +162,10 @@ export class Escritorio {
   }
 
   onSubmit() {
-    if (this.form.invalid || !this.arquivoSelecionado) {
+    const precisaArquivo = !this.editandoId;
+    if (this.form.invalid || (precisaArquivo && !this.arquivoSelecionado)) {
       this.form.markAllAsTouched();
-      if (!this.arquivoSelecionado) this.arquivoErro = 'Selecione um arquivo.';
+      if (precisaArquivo && !this.arquivoSelecionado) this.arquivoErro = 'Selecione um arquivo.';
       return;
     }
 
@@ -161,7 +180,12 @@ export class Escritorio {
     };
 
     this.salvando = true;
-    this.service.enviarDireto(this.arquivoSelecionado, meta).subscribe({
+
+    const request = this.editandoId
+      ? this.service.atualizar(this.editandoId, meta)
+      : this.service.enviarDireto(this.arquivoSelecionado!, meta);
+
+    request.subscribe({
       next: (res) => {
         this.toast.deResposta(res);
         this.salvando = false;
@@ -194,14 +218,21 @@ export class Escritorio {
 
   abrindoId: number | null = null;
 
+  visualizando: DocumentoModel | null = null;
+  visualizandoTipo: 'pdf' | 'imagem' | 'outro' = 'outro';
+  visualizandoObjectUrl: string | null = null;
+  visualizandoSafeUrl: SafeResourceUrl | null = null;
+
   abrir(doc: DocumentoModel) {
     if (!doc.id) return;
     this.abrindoId = doc.id;
     this.service.baixarArquivo(doc.id).subscribe({
       next: (blob) => {
         const objectUrl = URL.createObjectURL(blob);
-        window.open(objectUrl, '_blank');
-        setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+        this.visualizandoObjectUrl = objectUrl;
+        this.visualizandoSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+        this.visualizandoTipo = this.tipoDoArquivo(doc.mimeType);
+        this.visualizando = doc;
         this.abrindoId = null;
       },
       error: () => {
@@ -209,6 +240,19 @@ export class Escritorio {
         this.abrindoId = null;
       },
     });
+  }
+
+  fecharVisualizador() {
+    if (this.visualizandoObjectUrl) URL.revokeObjectURL(this.visualizandoObjectUrl);
+    this.visualizando = null;
+    this.visualizandoObjectUrl = null;
+    this.visualizandoSafeUrl = null;
+  }
+
+  private tipoDoArquivo(mimeType?: string): 'pdf' | 'imagem' | 'outro' {
+    if (mimeType === 'application/pdf') return 'pdf';
+    if (mimeType?.startsWith('image/')) return 'imagem';
+    return 'outro';
   }
 
   deletar(doc: DocumentoModel) {
@@ -227,9 +271,9 @@ export class Escritorio {
   }
 
   iconeArquivo(mimeType?: string): string {
-    if (!mimeType) return 'bi-file-earmark';
-    if (mimeType === 'application/pdf') return 'bi-file-earmark-pdf';
-    if (mimeType.startsWith('image/')) return 'bi-file-earmark-image';
+    const tipo = this.tipoDoArquivo(mimeType);
+    if (tipo === 'pdf') return 'bi-file-earmark-pdf';
+    if (tipo === 'imagem') return 'bi-file-earmark-image';
     return 'bi-file-earmark';
   }
 

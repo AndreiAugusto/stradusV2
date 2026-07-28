@@ -57,7 +57,10 @@
           </div>
           <div class="doc-card-actions">
             <button class="btn btn-sm btn-edit" [disabled]="abrindoId === doc.id" (click)="abrir(doc)">
-              <i class="bi bi-box-arrow-up-right"></i> {{ abrindoId === doc.id ? 'Abrindo...' : 'Abrir' }}
+              <i class="bi bi-eye"></i> {{ abrindoId === doc.id ? 'Abrindo...' : 'Visualizar' }}
+            </button>
+            <button class="btn btn-sm btn-edit" (click)="abrirEdicao(doc)">
+              <i class="bi bi-pencil"></i>
             </button>
             <button class="btn btn-sm btn-danger" (click)="deletar(doc)">
               <i class="bi bi-trash"></i>
@@ -89,7 +92,7 @@
 <div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-panel-header">
-      <h5>Enviar Documento</h5>
+      <h5>{{ editandoId ? 'Editar Documento' : 'Enviar Documento' }}</h5>
       <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
     </div>
 
@@ -127,20 +130,56 @@
           </select>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-3" *ngIf="!editandoId">
           <label class="form-label">Arquivo (PDF ou imagem, até 10MB)</label>
           <input type="file" class="form-control" accept=".pdf,image/*" (change)="onArquivoSelecionado($event)">
           <div class="form-text text-danger" *ngIf="arquivoErro">{{ arquivoErro }}</div>
           <div class="form-text" *ngIf="arquivoSelecionado && !arquivoErro">{{ arquivoSelecionado.name }}</div>
         </div>
+        <div class="form-text" *ngIf="editandoId">Para trocar o arquivo em si, exclua este documento e envie de novo.</div>
       </div>
 
       <div class="modal-panel-footer">
         <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
         <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
-          {{ salvando ? 'Enviando...' : 'Enviar' }}
+          {{ salvando ? (editandoId ? 'Salvando...' : 'Enviando...') : (editandoId ? 'Salvar' : 'Enviar') }}
         </button>
       </div>
     </form>
   </div>
+</div>
+
+<!-- Visualizador de documento (offcanvas) -->
+<div class="doc-viewer-backdrop" [class.show]="!!visualizando" (click)="fecharVisualizador()"></div>
+<div class="doc-viewer-panel" [class.open]="!!visualizando">
+  <ng-container *ngIf="visualizando as doc">
+    <div class="doc-viewer-header">
+      <div>
+        <h5>{{ doc.titulo }}</h5>
+        <div class="doc-viewer-sub">{{ doc.nomeArquivo }} · {{ formatarTamanho(doc.tamanho) }}</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <a
+          *ngIf="visualizandoObjectUrl"
+          [href]="visualizandoObjectUrl"
+          [download]="doc.nomeArquivo"
+          class="btn btn-sm btn-edit"
+          title="Baixar arquivo">
+          <i class="bi bi-download"></i>
+        </a>
+        <button type="button" class="btn-close-custom" (click)="fecharVisualizador()">&times;</button>
+      </div>
+    </div>
+    <div class="doc-viewer-body">
+      <iframe *ngIf="visualizandoTipo === 'pdf'" [src]="visualizandoSafeUrl" class="doc-viewer-frame"></iframe>
+      <img *ngIf="visualizandoTipo === 'imagem'" [src]="visualizandoObjectUrl" class="doc-viewer-image" [alt]="doc.titulo">
+      <div *ngIf="visualizandoTipo === 'outro'" class="doc-viewer-fallback">
+        <i class="bi bi-file-earmark" style="font-size: 3rem"></i>
+        <p>Pré-visualização não disponível para este tipo de arquivo.</p>
+        <a [href]="visualizandoObjectUrl" [download]="doc.nomeArquivo" class="btn btn-primary-custom">
+          <i class="bi bi-download"></i> Baixar arquivo
+        </a>
+      </div>
+    </div>
+  </ng-container>
 </div>

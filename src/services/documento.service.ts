@@ -57,6 +57,7 @@ export class DocumentoService {
     );
   }
 
+  atualizar(id: number, meta: Partial<DocumentoMeta>) { return this.http.patch<any>(`${this.url}/${id}`, meta); }
   deletar(id: number)        { return this.http.delete<any>(`${this.url}/${id}`); }
   baixarArquivo(id: number)  { return this.http.get(`${this.url}/${id}/arquivo`, { responseType: 'blob' }); }
 }

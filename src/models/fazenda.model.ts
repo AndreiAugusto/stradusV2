@@ -5,7 +5,12 @@ export interface FazendaModel {
   cidadeId?: number | null;
   /** como vem no GET (nome real da coluna, snake_case) */
   cidade_id?: number | null;
-  contato?: string;
   nomeCidade?: string;
   siglaEstado?: string;
+}
+
+export interface FazendaContatoModel {
+  id: number;
+  fazendaId: number;
+  contato: string;
 }

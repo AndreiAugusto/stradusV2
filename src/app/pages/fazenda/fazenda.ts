@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Menu } from '../../components/menu/menu';
-import { FazendaModel } from '../../../models/fazenda.model';
+import { FazendaContatoModel, FazendaModel } from '../../../models/fazenda.model';
 import { FazendaService } from '../../../services/fazenda.service';
 import { CidadeModel } from '../../../models/cidade.model';
 import { CidadeService } from '../../../services/cidade.service';
@@ -10,7 +10,7 @@ import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-fazenda',
-  imports: [Menu, CommonModule, ReactiveFormsModule],
+  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './fazenda.html',
   styleUrl: './fazenda.scss',
 })
@@ -24,10 +24,15 @@ export class Fazenda {
   salvando = false;
   editandoId: number | null = null;
 
+  expandidoId: number | null = null;
+  contatosPorFazenda: Record<number, FazendaContatoModel[]> = {};
+  carregandoContatos = false;
+  salvandoContato = false;
+  novoContato = '';
+
   form = new FormGroup({
     nome:      new FormControl('', [Validators.required]),
     cidadeId:  new FormControl<number | null>(null),
-    contato:   new FormControl(''),
   });
 
   constructor(
@@ -68,7 +73,7 @@ export class Fazenda {
 
   abrirNovo() {
     this.editandoId = null;
-    this.form.reset({ nome: '', cidadeId: null, contato: '' });
+    this.form.reset({ nome: '', cidadeId: null });
     this.showForm = true;
   }
 
@@ -77,7 +82,6 @@ export class Fazenda {
     this.form.reset({
       nome: item.nome,
       cidadeId: item.cidade_id ?? null,
-      contato: item.contato ?? '',
     });
     this.showForm = true;
   }
@@ -96,7 +100,6 @@ export class Fazenda {
     const payload: FazendaModel = {
       nome: valorForm.nome!,
       cidadeId: valorForm.cidadeId ?? undefined,
-      contato: valorForm.contato || undefined,
     };
 
     this.salvando = true;
@@ -115,6 +118,60 @@ export class Fazenda {
         this.toast.erro('Erro ao comunicar com o servidor.');
         this.salvando = false;
       },
+    });
+  }
+
+  toggleContatos(fazenda: FazendaModel) {
+    if (!fazenda.id) return;
+    if (this.expandidoId === fazenda.id) {
+      this.expandidoId = null;
+      return;
+    }
+    this.expandidoId = fazenda.id;
+    this.novoContato = '';
+    if (!this.contatosPorFazenda[fazenda.id]) {
+      this.carregandoContatos = true;
+      this.service.listarContatos(fazenda.id).subscribe({
+        next: (contatos) => {
+          this.contatosPorFazenda[fazenda.id!] = contatos;
+          this.carregandoContatos = false;
+        },
+        error: () => { this.carregandoContatos = false; },
+      });
+    }
+  }
+
+  adicionarContato(fazendaId: number) {
+    const contato = this.novoContato.trim();
+    if (!contato) {
+      this.toast.erro('Digite o nome/telefone do contato.');
+      return;
+    }
+    this.salvandoContato = true;
+    this.service.adicionarContato(fazendaId, contato).subscribe({
+      next: (res) => {
+        this.toast.deResposta(res);
+        this.salvandoContato = false;
+        this.novoContato = '';
+        this.service.listarContatos(fazendaId).subscribe({
+          next: (contatos) => { this.contatosPorFazenda[fazendaId] = contatos; },
+        });
+      },
+      error: () => {
+        this.toast.erro('Erro ao comunicar com o servidor.');
+        this.salvandoContato = false;
+      },
+    });
+  }
+
+  removerContato(contato: FazendaContatoModel) {
+    if (!confirm('Remover este contato?')) return;
+    this.service.removerContato(contato.id).subscribe({
+      next: (res) => {
+        this.toast.deResposta(res);
+        this.contatosPorFazenda[contato.fazendaId] = this.contatosPorFazenda[contato.fazendaId].filter(c => c.id !== contato.id);
+      },
+      error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
   }
 }

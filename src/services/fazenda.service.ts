@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environments/environment';
-import { FazendaModel } from '../models/fazenda.model';
+import { FazendaContatoModel, FazendaModel } from '../models/fazenda.model';
 
 @Injectable({ providedIn: 'root' })
 export class FazendaService {
@@ -14,4 +14,8 @@ export class FazendaService {
   criar(data: FazendaModel)       { return this.http.post<FazendaModel>(this.url, data); }
   atualizar(id: number, data: FazendaModel) { return this.http.patch<FazendaModel>(`${this.url}/${id}`, data); }
   deletar(id: number)             { return this.http.delete(`${this.url}/${id}`); }
+
+  listarContatos(fazendaId: number) { return this.http.get<FazendaContatoModel[]>(`${this.url}/${fazendaId}/contatos`); }
+  adicionarContato(fazendaId: number, contato: string) { return this.http.post<any>(`${this.url}/${fazendaId}/contatos`, { contato }); }
+  removerContato(contatoId: number) { return this.http.delete<any>(`${this.url}/contatos/${contatoId}`); }
 }
