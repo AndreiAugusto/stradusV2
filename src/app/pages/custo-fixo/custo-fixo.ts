@@ -186,7 +186,10 @@ export class CustoFixo {
         this.salvandoAjuste = false;
         this.novoAjuste = { mes: new Date().getMonth() + 1, ano: new Date().getFullYear(), valor: null };
         this.service.listarAjustes(custoFixoId).subscribe({
-          next: (ajustes) => { this.ajustesPorCustoFixo[custoFixoId] = ajustes; },
+          next: (ajustes) => {
+            this.ajustesPorCustoFixo[custoFixoId] = ajustes;
+            this.atualizarTotalAjustes(custoFixoId, ajustes.length);
+          },
         });
       },
       error: () => {
@@ -202,9 +205,15 @@ export class CustoFixo {
       next: (res) => {
         this.toast.deResposta(res);
         this.ajustesPorCustoFixo[ajuste.custoFixoId] = this.ajustesPorCustoFixo[ajuste.custoFixoId].filter(a => a.id !== ajuste.id);
+        this.atualizarTotalAjustes(ajuste.custoFixoId, this.ajustesPorCustoFixo[ajuste.custoFixoId].length);
       },
       error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
+  }
+
+  private atualizarTotalAjustes(custoFixoId: number, total: number) {
+    const custoFixo = this.custosFixos.find(c => c.id === custoFixoId);
+    if (custoFixo) custoFixo.totalAjustes = total;
   }
 
   nomeMes(mes: number): string {

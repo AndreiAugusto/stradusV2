@@ -154,7 +154,10 @@ export class Fazenda {
         this.salvandoContato = false;
         this.novoContato = '';
         this.service.listarContatos(fazendaId).subscribe({
-          next: (contatos) => { this.contatosPorFazenda[fazendaId] = contatos; },
+          next: (contatos) => {
+            this.contatosPorFazenda[fazendaId] = contatos;
+            this.atualizarTotalContatos(fazendaId, contatos.length);
+          },
         });
       },
       error: () => {
@@ -170,8 +173,14 @@ export class Fazenda {
       next: (res) => {
         this.toast.deResposta(res);
         this.contatosPorFazenda[contato.fazendaId] = this.contatosPorFazenda[contato.fazendaId].filter(c => c.id !== contato.id);
+        this.atualizarTotalContatos(contato.fazendaId, this.contatosPorFazenda[contato.fazendaId].length);
       },
       error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
+  }
+
+  private atualizarTotalContatos(fazendaId: number, total: number) {
+    const fazenda = this.fazendas.find(f => f.id === fazendaId);
+    if (fazenda) fazenda.totalContatos = total;
   }
 }

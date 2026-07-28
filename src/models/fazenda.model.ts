@@ -7,6 +7,7 @@ export interface FazendaModel {
   cidade_id?: number | null;
   nomeCidade?: string;
   siglaEstado?: string;
+  totalContatos?: number;
 }
 
 export interface FazendaContatoModel {

@@ -39,7 +39,7 @@
                   <td style="font-size: 0.875rem">{{ f.nomeCidade ? (f.nomeCidade + '/' + f.siglaEstado) : '—' }}</td>
                   <td>
                     <button class="tipo-badge" style="background: var(--color-primary); cursor: pointer; border: none" (click)="toggleContatos(f)">
-                      {{ contatosPorFazenda[f.id!]?.length ?? 0 }}
+                      {{ contatosPorFazenda[f.id!]?.length ?? f.totalContatos ?? 0 }}
                       <i class="bi" [ngClass]="expandidoId === f.id ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
                     </button>
                   </td>

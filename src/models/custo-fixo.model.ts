@@ -8,6 +8,7 @@ export interface CustoFixoModel {
   dataInicio: string;
   dataFim?: string | null;
   placaCaminhao?: string;
+  totalAjustes?: number;
 }
 
 export interface CustoFixoAjusteModel {
