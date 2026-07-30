@@ -18,6 +18,45 @@
       Erro ao carregar fretes.
     </div>
 
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Data Início</label>
+            <input type="date" class="form-control" [(ngModel)]="filtro.dataInicio" [ngModelOptions]="{standalone: true}">
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Data Fim</label>
+            <input type="date" class="form-control" [(ngModel)]="filtro.dataFim" [ngModelOptions]="{standalone: true}">
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Caminhão</label>
+            <select class="form-select" [(ngModel)]="filtro.caminhaoId" [ngModelOptions]="{standalone: true}">
+              <option [ngValue]="null">Todos</option>
+              <option *ngFor="let cam of caminhoes" [ngValue]="cam.id">{{ cam.placa }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Motorista</label>
+            <select class="form-select" [(ngModel)]="filtro.motoristaId" [ngModelOptions]="{standalone: true}">
+              <option [ngValue]="null">Todos</option>
+              <option *ngFor="let mot of motoristas" [ngValue]="mot.id">{{ mot.nomeMotorista }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Descrição</label>
+            <input type="text" class="form-control" placeholder="Buscar..." [(ngModel)]="filtro.busca" [ngModelOptions]="{standalone: true}">
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <button class="btn btn-outline-secondary w-100" (click)="limparFiltros()">
+              <i class="bi bi-x-circle"></i> Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- KPI Mini Cards -->
     <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
       <div class="col-sm-4">
@@ -56,19 +95,31 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Data</th>
-                <th style="text-align: left !important">Descrição</th>
-                <th>Caminhão</th>
-                <th>Motorista</th>
-                <th>% Motorista</th>
-                <th>Valor</th>
+                <th class="sortable" (click)="ordenarPor('data')">
+                  Data <i class="bi" [ngClass]="sortColuna==='data' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" style="text-align: left !important" (click)="ordenarPor('descricao')">
+                  Descrição <i class="bi" [ngClass]="sortColuna==='descricao' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('placa')">
+                  Caminhão <i class="bi" [ngClass]="sortColuna==='placa' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('nomeMotorista')">
+                  Motorista <i class="bi" [ngClass]="sortColuna==='nomeMotorista' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('porcentagemMotorista')">
+                  % Motorista <i class="bi" [ngClass]="sortColuna==='porcentagemMotorista' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('valor')">
+                  Valor <i class="bi" [ngClass]="sortColuna==='valor' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <tr *ngFor="let frete of fretes">
+              <tr *ngFor="let frete of fretesOrdenados">
                 <td style="color: var(--color-text-muted)">{{ frete.id }}</td>
-                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ frete.data | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
+                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ frete.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
                 <td style="text-align: left !important; font-size: 0.875rem">{{ frete.descricao || '—' }}</td>
                 <td style="font-size: 0.875rem; font-weight: 600">{{ frete.placa }}</td>
                 <td style="font-size: 0.875rem">{{ frete.nomeMotorista }}</td>
@@ -85,9 +136,9 @@
                   </button>
                 </td>
               </tr>
-              <tr *ngIf="fretes.length === 0">
+              <tr *ngIf="fretesOrdenados.length === 0">
                 <td colspan="8" class="text-center py-4" style="color: var(--color-text-muted)">
-                  Nenhum frete registrado.
+                  Nenhum frete encontrado para os filtros selecionados.
                 </td>
               </tr>
             </tbody>

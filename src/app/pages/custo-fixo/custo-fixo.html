@@ -18,6 +18,33 @@
       Erro ao carregar custos fixos.
     </div>
 
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-6 col-lg-4">
+            <label class="form-label">Categoria</label>
+            <select class="form-select" [(ngModel)]="filtro.categoria" [ngModelOptions]="{standalone: true}">
+              <option value="">Todas</option>
+              <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6 col-lg-4">
+            <label class="form-label">Caminhão</label>
+            <select class="form-select" [(ngModel)]="filtro.caminhaoId" [ngModelOptions]="{standalone: true}">
+              <option [ngValue]="null">Todos</option>
+              <option *ngFor="let cam of caminhoes" [ngValue]="cam.id">{{ cam.placa }} — {{ cam.modelo }}</option>
+            </select>
+          </div>
+          <div class="col-lg-2">
+            <button class="btn btn-outline-secondary w-100" (click)="limparFiltros()">
+              <i class="bi bi-x-circle"></i> Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- KPI -->
     <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
       <div class="col-sm-4">
@@ -32,7 +59,7 @@
       <div class="col-sm-4">
         <div class="kpi-card kpi-warning">
           <div class="kpi-label">Total de Registros</div>
-          <div class="kpi-value">{{ custosFixos.length }}</div>
+          <div class="kpi-value">{{ custosFixosFiltrados.length }}</div>
           <div class="kpi-sub"><i class="bi bi-list-check" style="color:#F59E0B"></i> Custos fixos</div>
         </div>
       </div>
@@ -49,19 +76,33 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th style="text-align: left !important">Descrição</th>
-                <th>Categoria</th>
-                <th>Caminhão</th>
-                <th>Vencimento</th>
-                <th>Início</th>
-                <th>Fim</th>
-                <th>Valor</th>
+                <th class="sortable" style="text-align: left !important" (click)="ordenarPor('descricao')">
+                  Descrição <i class="bi" [ngClass]="sortColuna==='descricao' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('categoria')">
+                  Categoria <i class="bi" [ngClass]="sortColuna==='categoria' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('placaCaminhao')">
+                  Caminhão <i class="bi" [ngClass]="sortColuna==='placaCaminhao' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('diaVencimento')">
+                  Vencimento <i class="bi" [ngClass]="sortColuna==='diaVencimento' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('dataInicio')">
+                  Início <i class="bi" [ngClass]="sortColuna==='dataInicio' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('dataFim')">
+                  Fim <i class="bi" [ngClass]="sortColuna==='dataFim' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('valor')">
+                  Valor <i class="bi" [ngClass]="sortColuna==='valor' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
                 <th>Ajustes</th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <ng-container *ngFor="let c of custosFixos">
+              <ng-container *ngFor="let c of custosFixosOrdenados">
                 <tr>
                   <td style="color: var(--color-text-muted)">{{ c.id }}</td>
                   <td style="text-align: left !important; font-size: 0.875rem">{{ c.descricao }}</td>
@@ -143,9 +184,9 @@
                   </td>
                 </tr>
               </ng-container>
-              <tr *ngIf="custosFixos.length === 0">
+              <tr *ngIf="custosFixosOrdenados.length === 0">
                 <td colspan="10" class="text-center py-4" style="color: var(--color-text-muted)">
-                  Nenhum custo fixo cadastrado.
+                  Nenhum custo fixo encontrado para os filtros selecionados.
                 </td>
               </tr>
             </tbody>

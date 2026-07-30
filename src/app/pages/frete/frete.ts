@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Menu } from '../../components/menu/menu';
 import { FreteModel } from '../../../models/frete.model';
 import { FreteService } from '../../../services/frete.service';
@@ -14,9 +14,11 @@ import { CargaModel } from '../../../models/carga.model';
 import { CargaService } from '../../../services/carga.service';
 import { ToastService } from '../../../services/toast.service';
 
+type ColunaFrete = 'data' | 'descricao' | 'placa' | 'nomeMotorista' | 'porcentagemMotorista' | 'valor';
+
 @Component({
   selector: 'app-frete',
-  imports: [Menu, CommonModule, ReactiveFormsModule],
+  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './frete.html',
   styleUrl: './frete.scss',
 })
@@ -34,6 +36,17 @@ export class Frete {
   salvando = false;
   editandoId: number | null = null;
 
+  filtro = {
+    dataInicio: '',
+    dataFim: '',
+    caminhaoId: null as number | null,
+    motoristaId: null as number | null,
+    busca: '',
+  };
+
+  sortColuna: ColunaFrete = 'data';
+  sortAsc = false;
+
   form = new FormGroup({
     descricao:             new FormControl(''),
     valor:                 new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
@@ -46,9 +59,47 @@ export class Frete {
     cargaId:               new FormControl<number | null>(null),
   });
 
-  get totalMes()    { return this.fretes.reduce((s, f) => s + f.valor, 0); }
-  get quantidade()  { return this.fretes.length; }
+  get totalMes()    { return this.fretesFiltrados.reduce((s, f) => s + f.valor, 0); }
+  get quantidade()  { return this.fretesFiltrados.length; }
   get ticketMedio() { return this.quantidade ? this.totalMes / this.quantidade : 0; }
+
+  get fretesFiltrados(): FreteModel[] {
+    const busca = this.filtro.busca.trim().toLowerCase();
+    return this.fretes.filter((f) => {
+      if (this.filtro.dataInicio && f.data.slice(0, 10) < this.filtro.dataInicio) return false;
+      if (this.filtro.dataFim && f.data.slice(0, 10) > this.filtro.dataFim) return false;
+      if (this.filtro.caminhaoId && f.caminhaoId !== this.filtro.caminhaoId) return false;
+      if (this.filtro.motoristaId && f.motoristaId !== this.filtro.motoristaId) return false;
+      if (busca && !(f.descricao ?? '').toLowerCase().includes(busca)) return false;
+      return true;
+    });
+  }
+
+  get fretesOrdenados(): FreteModel[] {
+    const dir = this.sortAsc ? 1 : -1;
+    return [...this.fretesFiltrados].sort((a, b) => {
+      const va = a[this.sortColuna];
+      const vb = b[this.sortColuna];
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+  }
+
+  ordenarPor(coluna: ColunaFrete) {
+    if (this.sortColuna === coluna) {
+      this.sortAsc = !this.sortAsc;
+    } else {
+      this.sortColuna = coluna;
+      this.sortAsc = coluna === 'data' ? false : true;
+    }
+  }
+
+  limparFiltros() {
+    this.filtro = { dataInicio: '', dataFim: '', caminhaoId: null, motoristaId: null, busca: '' };
+  }
 
   constructor(
     private service: FreteService,

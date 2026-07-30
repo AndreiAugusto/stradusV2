@@ -18,6 +18,34 @@
       Erro ao carregar abastecimentos.
     </div>
 
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-6 col-lg-3">
+            <label class="form-label">Data Início</label>
+            <input type="date" class="form-control" [(ngModel)]="filtro.dataInicio" [ngModelOptions]="{standalone: true}">
+          </div>
+          <div class="col-sm-6 col-lg-3">
+            <label class="form-label">Data Fim</label>
+            <input type="date" class="form-control" [(ngModel)]="filtro.dataFim" [ngModelOptions]="{standalone: true}">
+          </div>
+          <div class="col-sm-6 col-lg-4">
+            <label class="form-label">Caminhão</label>
+            <select class="form-select" [(ngModel)]="filtro.caminhaoId" [ngModelOptions]="{standalone: true}">
+              <option [ngValue]="null">Todos</option>
+              <option *ngFor="let cam of caminhoes" [ngValue]="cam.id">{{ cam.placa }} — {{ cam.modelo }}</option>
+            </select>
+          </div>
+          <div class="col-lg-2">
+            <button class="btn btn-outline-secondary w-100" (click)="limparFiltros()">
+              <i class="bi bi-x-circle"></i> Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- KPI Mini Cards -->
     <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
       <div class="col-sm-4">
@@ -56,19 +84,31 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Data</th>
-                <th>Caminhão</th>
-                <th>Km</th>
-                <th>Litros</th>
-                <th>Consumo (km/L)</th>
-                <th>Custo Total</th>
+                <th class="sortable" (click)="ordenarPor('data')">
+                  Data <i class="bi" [ngClass]="sortColuna==='data' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('placa')">
+                  Caminhão <i class="bi" [ngClass]="sortColuna==='placa' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('quilometragem')">
+                  Km <i class="bi" [ngClass]="sortColuna==='quilometragem' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('litros')">
+                  Litros <i class="bi" [ngClass]="sortColuna==='litros' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('consumo')">
+                  Consumo (km/L) <i class="bi" [ngClass]="sortColuna==='consumo' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('custoTotal')">
+                  Custo Total <i class="bi" [ngClass]="sortColuna==='custoTotal' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <tr *ngFor="let ab of abastecimentos">
+              <tr *ngFor="let ab of abastecimentosOrdenados">
                 <td style="color: var(--color-text-muted)">{{ ab.id }}</td>
-                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ ab.data  | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
+                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ ab.data  | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
                 <td style="font-size: 0.875rem; font-weight: 600">{{ ab.placa }}</td>
                 <td style="font-size: 0.875rem">{{ ab.quilometragem ? (ab.quilometragem | number:'1.0-0':'pt-BR') : '—' }}</td>
                 <td style="font-size: 0.875rem">{{ ab.litros ? (ab.litros + ' L') : '—' }}</td>
@@ -85,9 +125,9 @@
                   </button>
                 </td>
               </tr>
-              <tr *ngIf="abastecimentos.length === 0">
+              <tr *ngIf="abastecimentosOrdenados.length === 0">
                 <td colspan="8" class="text-center py-4" style="color: var(--color-text-muted)">
-                  Nenhum abastecimento registrado.
+                  Nenhum abastecimento encontrado para os filtros selecionados.
                 </td>
               </tr>
             </tbody>

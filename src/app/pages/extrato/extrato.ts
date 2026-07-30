@@ -15,7 +15,6 @@ type Coluna = 'data' | 'placa' | 'motorista' | 'empresa' | 'historico' | 'despes
   selector: 'app-extrato',
   imports: [Menu, CommonModule, FormsModule],
   templateUrl: './extrato.html',
-  styleUrl: './extrato.scss',
 })
 export class Extrato {
   isLoading = true;

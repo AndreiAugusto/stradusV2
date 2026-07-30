@@ -8,6 +8,8 @@ import { CaminhaoModel } from '../../../models/caminhao.model';
 import { CaminhaoService } from '../../../services/caminhao.service';
 import { ToastService } from '../../../services/toast.service';
 
+type ColunaCustoFixo = 'descricao' | 'categoria' | 'placaCaminhao' | 'diaVencimento' | 'dataInicio' | 'dataFim' | 'valor';
+
 @Component({
   selector: 'app-custo-fixo',
   imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule],
@@ -19,6 +21,14 @@ export class CustoFixo {
   erro = false;
   custosFixos: CustoFixoModel[] = [];
   caminhoes: CaminhaoModel[] = [];
+
+  filtro = {
+    categoria: '' as string,
+    caminhaoId: null as number | null,
+  };
+
+  sortColuna: ColunaCustoFixo = 'dataInicio';
+  sortAsc = false;
 
   categorias = ['IPVA', 'Seguro', 'Financiamento', 'Outro'];
   meses = [
@@ -49,7 +59,41 @@ export class CustoFixo {
   });
 
   get totalMensal() {
-    return this.custosFixos.reduce((s, c) => s + (Number(c.valor) || 0), 0);
+    return this.custosFixosFiltrados.reduce((s, c) => s + (Number(c.valor) || 0), 0);
+  }
+
+  get custosFixosFiltrados(): CustoFixoModel[] {
+    return this.custosFixos.filter((c) => {
+      if (this.filtro.categoria && c.categoria !== this.filtro.categoria) return false;
+      if (this.filtro.caminhaoId && c.caminhaoId !== this.filtro.caminhaoId) return false;
+      return true;
+    });
+  }
+
+  get custosFixosOrdenados(): CustoFixoModel[] {
+    const dir = this.sortAsc ? 1 : -1;
+    return [...this.custosFixosFiltrados].sort((a, b) => {
+      const va = a[this.sortColuna];
+      const vb = b[this.sortColuna];
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+  }
+
+  ordenarPor(coluna: ColunaCustoFixo) {
+    if (this.sortColuna === coluna) {
+      this.sortAsc = !this.sortAsc;
+    } else {
+      this.sortColuna = coluna;
+      this.sortAsc = coluna === 'dataInicio' ? false : true;
+    }
+  }
+
+  limparFiltros() {
+    this.filtro = { categoria: '', caminhaoId: null };
   }
 
   constructor(

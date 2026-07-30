@@ -120,6 +120,15 @@ html, body {
 th  { text-align: center !important; }
 td  { text-align: center !important; vertical-align: middle !important; }
 
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    color: var(--color-text);
+  }
+}
+
 /* ── Type badge ──────────────────────────────────── */
 .tipo-badge {
   display: inline-block;

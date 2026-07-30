@@ -18,6 +18,41 @@
       Erro ao carregar manutenções.
     </div>
 
+    <!-- Filtros -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Data Início</label>
+            <input type="date" class="form-control" [(ngModel)]="filtro.dataInicio" [ngModelOptions]="{standalone: true}">
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Data Fim</label>
+            <input type="date" class="form-control" [(ngModel)]="filtro.dataFim" [ngModelOptions]="{standalone: true}">
+          </div>
+          <div class="col-sm-6 col-lg-4">
+            <label class="form-label">Caminhão</label>
+            <select class="form-select" [(ngModel)]="filtro.caminhaoId" [ngModelOptions]="{standalone: true}">
+              <option [ngValue]="null">Todos</option>
+              <option *ngFor="let cam of caminhoes" [ngValue]="cam.id">{{ cam.placa }} — {{ cam.modelo }}</option>
+            </select>
+          </div>
+          <div class="col-sm-6 col-lg-2">
+            <label class="form-label">Oficina</label>
+            <select class="form-select" [(ngModel)]="filtro.oficinaId" [ngModelOptions]="{standalone: true}">
+              <option [ngValue]="null">Todas</option>
+              <option *ngFor="let of of oficinas" [ngValue]="of.id">{{ of.nomeOficina }}</option>
+            </select>
+          </div>
+          <div class="col-lg-2">
+            <button class="btn btn-outline-secondary w-100" (click)="limparFiltros()">
+              <i class="bi bi-x-circle"></i> Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- KPI -->
     <div *ngIf="!isLoading && !erro" class="row g-3 mb-4">
       <div class="col-sm-4">
@@ -32,7 +67,7 @@
       <div class="col-sm-4">
         <div class="kpi-card kpi-warning">
           <div class="kpi-label">Total de Registros</div>
-          <div class="kpi-value">{{ manutencoes.length }}</div>
+          <div class="kpi-value">{{ manutencoesFiltradas.length }}</div>
           <div class="kpi-sub"><i class="bi bi-list-check" style="color:#F59E0B"></i> Manutenções</div>
         </div>
       </div>
@@ -49,17 +84,27 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Data</th>
-                <th>Caminhão</th>
-                <th>Oficina</th>
-                <th style="text-align: left !important">Descrição</th>
+                <th class="sortable" (click)="ordenarPor('data')">
+                  Data <i class="bi" [ngClass]="sortColuna==='data' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('placaCaminhao')">
+                  Caminhão <i class="bi" [ngClass]="sortColuna==='placaCaminhao' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" (click)="ordenarPor('nomeOficina')">
+                  Oficina <i class="bi" [ngClass]="sortColuna==='nomeOficina' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
+                <th class="sortable" style="text-align: left !important" (click)="ordenarPor('descricao')">
+                  Descrição <i class="bi" [ngClass]="sortColuna==='descricao' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
                 <th>Parcelas</th>
-                <th>Custo</th>
+                <th class="sortable" (click)="ordenarPor('custo')">
+                  Custo <i class="bi" [ngClass]="sortColuna==='custo' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                </th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <ng-container *ngFor="let m of manutencoes">
+              <ng-container *ngFor="let m of manutencoesOrdenadas">
                 <tr>
                   <td style="color: var(--color-text-muted)">{{ m.id }}</td>
                   <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ m.data  | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
@@ -125,9 +170,9 @@
                   </td>
                 </tr>
               </ng-container>
-              <tr *ngIf="manutencoes.length === 0">
+              <tr *ngIf="manutencoesOrdenadas.length === 0">
                 <td colspan="8" class="text-center py-4" style="color: var(--color-text-muted)">
-                  Nenhuma manutenção registrada.
+                  Nenhuma manutenção encontrada para os filtros selecionados.
                 </td>
               </tr>
             </tbody>

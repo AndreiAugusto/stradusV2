@@ -34,7 +34,7 @@
                             <tr *ngFor="let motorista of motoristas">
                                 <td style="color: var(--color-text-muted)">{{ motorista.id }}</td>
                                 <td style="font-weight: 600">{{ motorista.nomeMotorista }}</td>
-                                <td>{{ motorista.nascimento | date:'dd/MM/yyyy':'':'pt-BR' }}</td>
+                                <td>{{ motorista.nascimento | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
                                 <td>{{ motorista.nCarteira || '—' }}</td>
                                 <td>
                                     <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(motorista)">

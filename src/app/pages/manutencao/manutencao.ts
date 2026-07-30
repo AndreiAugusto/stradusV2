@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Menu } from '../../components/menu/menu';
 import { ManutencaoModel, ManutencaoParcelaModel } from '../../../models/manutencao.model';
 import { ManutencaoService } from '../../../services/manutencao.service';
@@ -10,9 +10,11 @@ import { OficinaModel } from '../../../models/oficina.model';
 import { OficinaService } from '../../../services/oficina.service';
 import { ToastService } from '../../../services/toast.service';
 
+type ColunaManutencao = 'data' | 'placaCaminhao' | 'nomeOficina' | 'descricao' | 'custo';
+
 @Component({
   selector: 'app-manutencao',
-  imports: [Menu, CommonModule, ReactiveFormsModule],
+  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './manutencao.html',
   styleUrl: './manutencao.scss',
 })
@@ -31,6 +33,16 @@ export class Manutencao {
   parcelasPorManutencao: Record<number, ManutencaoParcelaModel[]> = {};
   carregandoParcelas = false;
 
+  filtro = {
+    dataInicio: '',
+    dataFim: '',
+    caminhaoId: null as number | null,
+    oficinaId: null as number | null,
+  };
+
+  sortColuna: ColunaManutencao = 'data';
+  sortAsc = false;
+
   form = new FormGroup({
     descricao:      new FormControl('', [Validators.required]),
     custo:          new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
@@ -40,7 +52,43 @@ export class Manutencao {
     numeroParcelas: new FormControl<number>(1, [Validators.required, Validators.min(1)]),
   });
 
-  get totalGasto() { return this.manutencoes.reduce((s, m) => s + (m.custo ?? 0), 0); }
+  get totalGasto() { return this.manutencoesFiltradas.reduce((s, m) => s + (m.custo ?? 0), 0); }
+
+  get manutencoesFiltradas(): ManutencaoModel[] {
+    return this.manutencoes.filter((m) => {
+      if (this.filtro.dataInicio && m.data.slice(0, 10) < this.filtro.dataInicio) return false;
+      if (this.filtro.dataFim && m.data.slice(0, 10) > this.filtro.dataFim) return false;
+      if (this.filtro.caminhaoId && m.caminhaoId !== this.filtro.caminhaoId) return false;
+      if (this.filtro.oficinaId && m.oficinaId !== this.filtro.oficinaId) return false;
+      return true;
+    });
+  }
+
+  get manutencoesOrdenadas(): ManutencaoModel[] {
+    const dir = this.sortAsc ? 1 : -1;
+    return [...this.manutencoesFiltradas].sort((a, b) => {
+      const va = a[this.sortColuna];
+      const vb = b[this.sortColuna];
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+  }
+
+  ordenarPor(coluna: ColunaManutencao) {
+    if (this.sortColuna === coluna) {
+      this.sortAsc = !this.sortAsc;
+    } else {
+      this.sortColuna = coluna;
+      this.sortAsc = coluna === 'data' ? false : true;
+    }
+  }
+
+  limparFiltros() {
+    this.filtro = { dataInicio: '', dataFim: '', caminhaoId: null, oficinaId: null };
+  }
 
   constructor(
     private service: ManutencaoService,
