@@ -12,9 +12,11 @@ import { CidadeModel } from '../../../models/cidade.model';
 import { CidadeService } from '../../../services/cidade.service';
 import { CargaModel } from '../../../models/carga.model';
 import { CargaService } from '../../../services/carga.service';
+import { FazendaModel } from '../../../models/fazenda.model';
+import { FazendaService } from '../../../services/fazenda.service';
 import { ToastService } from '../../../services/toast.service';
 
-type ColunaFrete = 'data' | 'descricao' | 'placa' | 'nomeMotorista' | 'porcentagemMotorista' | 'valor';
+type ColunaFrete = 'data' | 'nomeFazenda' | 'placa' | 'nomeMotorista' | 'porcentagemMotorista' | 'valor';
 
 @Component({
   selector: 'app-frete',
@@ -31,6 +33,7 @@ export class Frete {
   motoristas: MotoristaModel[] = [];
   cidades: CidadeModel[] = [];
   cargas: CargaModel[] = [];
+  fazendas: FazendaModel[] = [];
 
   showForm = false;
   salvando = false;
@@ -41,14 +44,14 @@ export class Frete {
     dataFim: '',
     caminhaoId: null as number | null,
     motoristaId: null as number | null,
-    busca: '',
+    fazendaId: null as number | null,
   };
 
   sortColuna: ColunaFrete = 'data';
   sortAsc = false;
 
   form = new FormGroup({
-    descricao:             new FormControl(''),
+    fazendaNome:           new FormControl(''),
     valor:                 new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
     data:                  new FormControl('', [Validators.required]),
     caminhaoId:            new FormControl<number | null>(null, [Validators.required]),
@@ -64,13 +67,12 @@ export class Frete {
   get ticketMedio() { return this.quantidade ? this.totalMes / this.quantidade : 0; }
 
   get fretesFiltrados(): FreteModel[] {
-    const busca = this.filtro.busca.trim().toLowerCase();
     return this.fretes.filter((f) => {
       if (this.filtro.dataInicio && f.data.slice(0, 10) < this.filtro.dataInicio) return false;
       if (this.filtro.dataFim && f.data.slice(0, 10) > this.filtro.dataFim) return false;
       if (this.filtro.caminhaoId && f.caminhaoId !== this.filtro.caminhaoId) return false;
       if (this.filtro.motoristaId && f.motoristaId !== this.filtro.motoristaId) return false;
-      if (busca && !(f.descricao ?? '').toLowerCase().includes(busca)) return false;
+      if (this.filtro.fazendaId && f.fazendaId !== this.filtro.fazendaId) return false;
       return true;
     });
   }
@@ -98,7 +100,7 @@ export class Frete {
   }
 
   limparFiltros() {
-    this.filtro = { dataInicio: '', dataFim: '', caminhaoId: null, motoristaId: null, busca: '' };
+    this.filtro = { dataInicio: '', dataFim: '', caminhaoId: null, motoristaId: null, fazendaId: null };
   }
 
   constructor(
@@ -107,6 +109,7 @@ export class Frete {
     private motoristaService: MotoristaService,
     private cidadeService: CidadeService,
     private cargaService: CargaService,
+    private fazendaService: FazendaService,
     private toast: ToastService,
   ) {}
 
@@ -116,6 +119,7 @@ export class Frete {
     this.motoristaService.listar().subscribe({ next: (data) => { this.motoristas = data; } });
     this.cidadeService.listar().subscribe({ next: (data) => { this.cidades = data; } });
     this.cargaService.listar().subscribe({ next: (data) => { this.cargas = data; } });
+    this.fazendaService.listar().subscribe({ next: (data) => { this.fazendas = data; } });
   }
 
   carregar() {
@@ -146,7 +150,7 @@ export class Frete {
   abrirNovo() {
     this.editandoId = null;
     this.form.reset({
-      descricao: '', valor: null, data: '', caminhaoId: null, motoristaId: null,
+      fazendaNome: '', valor: null, data: '', caminhaoId: null, motoristaId: null,
       porcentagemMotorista: 12, origemId: null, destinoId: null, cargaId: null,
     });
     this.showForm = true;
@@ -155,7 +159,7 @@ export class Frete {
   abrirEdicao(item: FreteModel) {
     this.editandoId = item.id ?? null;
     this.form.reset({
-      descricao: item.descricao ?? '',
+      fazendaNome: item.nomeFazenda ?? '',
       valor: item.valor,
       data: item.data?.slice(0, 10),
       caminhaoId: item.caminhaoId,
@@ -172,41 +176,73 @@ export class Frete {
     this.showForm = false;
   }
 
+  /** Acha a fazenda digitada na lista já carregada (case/espaço-insensitive) ou cria uma nova, sem cidade/contato. */
+  private resolverFazendaId(nomeDigitado: string, aoResolver: (fazendaId: number | undefined) => void) {
+    const nome = nomeDigitado.trim();
+    if (!nome) {
+      aoResolver(undefined);
+      return;
+    }
+    const existente = this.fazendas.find((f) => f.nome.trim().toLowerCase() === nome.toLowerCase());
+    if (existente) {
+      aoResolver(existente.id!);
+      return;
+    }
+    this.fazendaService.criar({ nome }).subscribe({
+      next: (res: any) => {
+        if (res?.error || !res?.id) {
+          this.toast.erro(res?.message ?? 'Erro ao criar fazenda.');
+          this.salvando = false;
+          return;
+        }
+        this.fazendas = [...this.fazendas, { id: res.id, nome }];
+        aoResolver(res.id);
+      },
+      error: () => {
+        this.toast.erro('Erro ao comunicar com o servidor.');
+        this.salvando = false;
+      },
+    });
+  }
+
   onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const valorForm = this.form.value;
-    const payload: FreteModel = {
-      descricao: valorForm.descricao || undefined,
-      valor: Number(valorForm.valor),
-      data: valorForm.data!,
-      caminhaoId: valorForm.caminhaoId!,
-      motoristaId: valorForm.motoristaId!,
-      porcentagemMotorista: Number(valorForm.porcentagemMotorista),
-      origemId: valorForm.origemId ?? undefined,
-      destinoId: valorForm.destinoId ?? undefined,
-      cargaId: valorForm.cargaId ?? undefined,
-    };
-
     this.salvando = true;
-    const request = this.editandoId
-      ? this.service.atualizar(this.editandoId, payload)
-      : this.service.criar(payload);
+    const valorForm = this.form.value;
 
-    request.subscribe({
-      next: (res) => {
-        this.toast.deResposta(res);
-        this.salvando = false;
-        this.showForm = false;
-        this.carregar();
-      },
-      error: () => {
-        this.toast.erro('Erro ao comunicar com o servidor.');
-        this.salvando = false;
-      },
+    this.resolverFazendaId(valorForm.fazendaNome ?? '', (fazendaId) => {
+      const payload: FreteModel = {
+        valor: Number(valorForm.valor),
+        data: valorForm.data!,
+        caminhaoId: valorForm.caminhaoId!,
+        motoristaId: valorForm.motoristaId!,
+        porcentagemMotorista: Number(valorForm.porcentagemMotorista),
+        origemId: valorForm.origemId ?? undefined,
+        destinoId: valorForm.destinoId ?? undefined,
+        cargaId: valorForm.cargaId ?? undefined,
+        fazendaId,
+      };
+
+      const request = this.editandoId
+        ? this.service.atualizar(this.editandoId, payload)
+        : this.service.criar(payload);
+
+      request.subscribe({
+        next: (res) => {
+          this.toast.deResposta(res);
+          this.salvando = false;
+          this.showForm = false;
+          this.carregar();
+        },
+        error: () => {
+          this.toast.erro('Erro ao comunicar com o servidor.');
+          this.salvando = false;
+        },
+      });
     });
   }
 }

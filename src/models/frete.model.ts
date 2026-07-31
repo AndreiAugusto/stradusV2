@@ -9,6 +9,7 @@ export interface FreteModel {
   origemId?: number;
   destinoId?: number;
   cargaId?: number;
+  fazendaId?: number;
   /** Nomes retornados pelo GET (mesmo id de origemId/destinoId/cargaId, nome diferente por causa do "f.*" no backend) */
   origem?: number;
   destino?: number;
@@ -19,4 +20,5 @@ export interface FreteModel {
   nomeOrigem?: string;
   nomeDestino?: string;
   nomeCarga?: string;
+  nomeFazenda?: string;
 }

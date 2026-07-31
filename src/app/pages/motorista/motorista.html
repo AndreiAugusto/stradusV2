@@ -23,7 +23,6 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>#</th>
                                 <th>Nome</th>
                                 <th>Nascimento</th>
                                 <th>Nº Carteira</th>
@@ -32,7 +31,6 @@
                         </thead>
                         <tbody *ngIf="!isLoading">
                             <tr *ngFor="let motorista of motoristas">
-                                <td style="color: var(--color-text-muted)">{{ motorista.id }}</td>
                                 <td style="font-weight: 600">{{ motorista.nomeMotorista }}</td>
                                 <td>{{ motorista.nascimento | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
                                 <td>{{ motorista.nCarteira || '—' }}</td>
@@ -46,14 +44,14 @@
                                 </td>
                             </tr>
                             <tr *ngIf="motoristas.length === 0">
-                                <td colspan="5" class="text-center py-4" style="color: var(--color-text-muted)">
+                                <td colspan="4" class="text-center py-4" style="color: var(--color-text-muted)">
                                     Nenhum motorista cadastrado.
                                 </td>
                             </tr>
                         </tbody>
                         <tbody *ngIf="isLoading">
                             <tr>
-                                <td colspan="5" class="text-center py-4">
+                                <td colspan="4" class="text-center py-4">
                                     <div class="spinner-border" style="color: var(--color-primary)" role="status">
                                         <span class="visually-hidden">Carregando...</span>
                                     </div>

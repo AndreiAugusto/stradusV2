@@ -24,7 +24,6 @@
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>#</th>
                 <th style="text-align: left !important">Nome</th>
                 <th>Cidade</th>
                 <th>Contatos</th>
@@ -34,7 +33,6 @@
             <tbody *ngIf="!isLoading">
               <ng-container *ngFor="let f of fazendas">
                 <tr>
-                  <td style="color: var(--color-text-muted)">{{ f.id }}</td>
                   <td style="text-align: left !important; font-weight: 600">{{ f.nome }}</td>
                   <td style="font-size: 0.875rem">{{ f.nomeCidade ? (f.nomeCidade + '/' + f.siglaEstado) : '—' }}</td>
                   <td>
@@ -53,7 +51,7 @@
                   </td>
                 </tr>
                 <tr *ngIf="expandidoId === f.id">
-                  <td [attr.colspan]="5" style="background: #F8FAFC; text-align: left !important">
+                  <td [attr.colspan]="4" style="background: #F8FAFC; text-align: left !important">
                     <div *ngIf="carregandoContatos && !contatosPorFazenda[f.id!]" class="py-2 text-center">
                       <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
                     </div>
@@ -94,14 +92,14 @@
                 </tr>
               </ng-container>
               <tr *ngIf="fazendas.length === 0">
-                <td colspan="5" class="text-center py-4" style="color: var(--color-text-muted)">
+                <td colspan="4" class="text-center py-4" style="color: var(--color-text-muted)">
                   Nenhuma fazenda cadastrada.
                 </td>
               </tr>
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="5" class="text-center py-4">
+                <td colspan="4" class="text-center py-4">
                   <div class="spinner-border" style="color: var(--color-primary)" role="status">
                     <span class="visually-hidden">Carregando...</span>
                   </div>

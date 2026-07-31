@@ -23,14 +23,12 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>#</th>
                                 <th>Nome da Oficina</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody *ngIf="!isLoading">
                             <tr *ngFor="let oficina of oficinas">
-                                <td style="color: var(--color-text-muted)">{{ oficina.id }}</td>
                                 <td style="font-weight: 600; text-align: left !important">{{ oficina.nomeOficina }}</td>
                                 <td>
                                     <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(oficina)">
@@ -42,14 +40,14 @@
                                 </td>
                             </tr>
                             <tr *ngIf="oficinas.length === 0">
-                                <td colspan="3" class="text-center py-4" style="color: var(--color-text-muted)">
+                                <td colspan="2" class="text-center py-4" style="color: var(--color-text-muted)">
                                     Nenhuma oficina cadastrada.
                                 </td>
                             </tr>
                         </tbody>
                         <tbody *ngIf="isLoading">
                             <tr>
-                                <td colspan="3" class="text-center py-4">
+                                <td colspan="2" class="text-center py-4">
                                     <div class="spinner-border" style="color: var(--color-primary)" role="status">
                                         <span class="visually-hidden">Carregando...</span>
                                     </div>

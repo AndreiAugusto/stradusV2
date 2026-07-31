@@ -75,7 +75,6 @@
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>#</th>
                 <th class="sortable" style="text-align: left !important" (click)="ordenarPor('descricao')">
                   Descrição <i class="bi" [ngClass]="sortColuna==='descricao' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
                 </th>
@@ -104,7 +103,6 @@
             <tbody *ngIf="!isLoading">
               <ng-container *ngFor="let c of custosFixosOrdenados">
                 <tr>
-                  <td style="color: var(--color-text-muted)">{{ c.id }}</td>
                   <td style="text-align: left !important; font-size: 0.875rem">{{ c.descricao }}</td>
                   <td style="font-size: 0.875rem">{{ c.categoria || '—' }}</td>
                   <td style="font-size: 0.875rem; font-weight: 600">{{ c.placaCaminhao || 'Geral' }}</td>
@@ -132,7 +130,7 @@
                   </td>
                 </tr>
                 <tr *ngIf="expandidoId === c.id">
-                  <td [attr.colspan]="10" style="background: #F8FAFC; text-align: left !important">
+                  <td [attr.colspan]="9" style="background: #F8FAFC; text-align: left !important">
                     <div *ngIf="carregandoAjustes && !ajustesPorCustoFixo[c.id!]" class="py-2 text-center">
                       <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
                     </div>
@@ -185,14 +183,14 @@
                 </tr>
               </ng-container>
               <tr *ngIf="custosFixosOrdenados.length === 0">
-                <td colspan="10" class="text-center py-4" style="color: var(--color-text-muted)">
+                <td colspan="9" class="text-center py-4" style="color: var(--color-text-muted)">
                   Nenhum custo fixo encontrado para os filtros selecionados.
                 </td>
               </tr>
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="10" class="text-center py-4">
+                <td colspan="9" class="text-center py-4">
                   <div class="spinner-border" style="color: var(--color-primary)" role="status">
                     <span class="visually-hidden">Carregando...</span>
                   </div>

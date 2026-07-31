@@ -45,8 +45,11 @@
             </select>
           </div>
           <div class="col-sm-6 col-lg-2">
-            <label class="form-label">Descrição</label>
-            <input type="text" class="form-control" placeholder="Buscar..." [(ngModel)]="filtro.busca" [ngModelOptions]="{standalone: true}">
+            <label class="form-label">Fazenda</label>
+            <select class="form-select" [(ngModel)]="filtro.fazendaId" [ngModelOptions]="{standalone: true}">
+              <option [ngValue]="null">Todas</option>
+              <option *ngFor="let fz of fazendas" [ngValue]="fz.id">{{ fz.nome }}</option>
+            </select>
           </div>
           <div class="col-sm-6 col-lg-2">
             <button class="btn btn-outline-secondary w-100" (click)="limparFiltros()">
@@ -94,12 +97,11 @@
           <table class="table table-hover mb-0">
             <thead>
               <tr>
-                <th>#</th>
                 <th class="sortable" (click)="ordenarPor('data')">
                   Data <i class="bi" [ngClass]="sortColuna==='data' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
                 </th>
-                <th class="sortable" style="text-align: left !important" (click)="ordenarPor('descricao')">
-                  Descrição <i class="bi" [ngClass]="sortColuna==='descricao' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
+                <th class="sortable" style="text-align: left !important" (click)="ordenarPor('nomeFazenda')">
+                  Fazenda <i class="bi" [ngClass]="sortColuna==='nomeFazenda' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
                 </th>
                 <th class="sortable" (click)="ordenarPor('placa')">
                   Caminhão <i class="bi" [ngClass]="sortColuna==='placa' ? (sortAsc ? 'bi-caret-up-fill' : 'bi-caret-down-fill') : 'bi-caret-down'"></i>
@@ -118,9 +120,8 @@
             </thead>
             <tbody *ngIf="!isLoading">
               <tr *ngFor="let frete of fretesOrdenados">
-                <td style="color: var(--color-text-muted)">{{ frete.id }}</td>
                 <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ frete.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
-                <td style="text-align: left !important; font-size: 0.875rem">{{ frete.descricao || '—' }}</td>
+                <td style="text-align: left !important; font-size: 0.875rem">{{ frete.nomeFazenda || '—' }}</td>
                 <td style="font-size: 0.875rem; font-weight: 600">{{ frete.placa }}</td>
                 <td style="font-size: 0.875rem">{{ frete.nomeMotorista }}</td>
                 <td style="font-size: 0.875rem">{{ frete.porcentagemMotorista }}%</td>
@@ -137,14 +138,14 @@
                 </td>
               </tr>
               <tr *ngIf="fretesOrdenados.length === 0">
-                <td colspan="8" class="text-center py-4" style="color: var(--color-text-muted)">
+                <td colspan="7" class="text-center py-4" style="color: var(--color-text-muted)">
                   Nenhum frete encontrado para os filtros selecionados.
                 </td>
               </tr>
             </tbody>
             <tbody *ngIf="isLoading">
               <tr>
-                <td colspan="8" class="text-center py-4">
+                <td colspan="7" class="text-center py-4">
                   <div class="spinner-border" style="color: var(--color-primary)" role="status">
                     <span class="visually-hidden">Carregando...</span>
                   </div>
@@ -170,8 +171,12 @@
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="modal-panel-body">
         <div class="mb-3">
-          <label class="form-label">Descrição (opcional)</label>
-          <input type="text" class="form-control" formControlName="descricao" placeholder="Ex: Carga de soja - SP para MG">
+          <label class="form-label">Fazenda (opcional)</label>
+          <input type="text" class="form-control" formControlName="fazendaNome" list="fazendas-sugeridas" placeholder="Digite ou selecione uma fazenda">
+          <datalist id="fazendas-sugeridas">
+            <option *ngFor="let fz of fazendas" [value]="fz.nome"></option>
+          </datalist>
+          <div class="form-text">Se a fazenda não existir ainda, ela é criada automaticamente (sem cidade/contato — pode completar depois em Fazendas).</div>
         </div>
 
         <div class="row">
