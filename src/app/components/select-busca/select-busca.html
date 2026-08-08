@@ -1,0 +1,42 @@
+<div class="select-busca">
+  <div class="select-busca-input-wrap">
+    <input
+      #input
+      type="text"
+      class="form-control"
+      [class.disabled]="disabled"
+      [placeholder]="placeholder"
+      [value]="termoBusca"
+      [disabled]="disabled"
+      (input)="onInput($any($event.target).value)"
+      (focus)="onFocus($event)"
+      (blur)="onBlur()">
+    <button
+      type="button"
+      class="select-busca-clear"
+      *ngIf="termoBusca && !disabled"
+      (mousedown)="$event.preventDefault()"
+      (click)="limpar()"
+      title="Limpar">
+      <i class="bi bi-x-circle-fill"></i>
+    </button>
+  </div>
+
+  <div
+    class="select-busca-dropdown"
+    *ngIf="aberto"
+    (mousedown)="$event.preventDefault()"
+    [style.top.px]="posicao.top"
+    [style.left.px]="posicao.left"
+    [style.width.px]="posicao.width">
+    <div class="select-busca-item" *ngFor="let opcao of opcoesFiltradas" (click)="selecionar(opcao)">
+      {{ opcao.label }}
+    </div>
+    <div class="select-busca-empty" *ngIf="opcoesFiltradas.length === 0">
+      Nenhum resultado encontrado.
+    </div>
+    <div class="select-busca-hint" *ngIf="totalFiltradas > opcoesFiltradas.length">
+      Mostrando {{ opcoesFiltradas.length }} de {{ totalFiltradas }} — digite para refinar a busca.
+    </div>
+  </div>
+</div>

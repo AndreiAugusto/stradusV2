@@ -2,25 +2,26 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Menu } from '../../components/menu/menu';
+import { SelectBusca, OpcaoSelectBusca } from '../../components/select-busca/select-busca';
 import { FreteModel } from '../../../models/frete.model';
 import { FreteService } from '../../../services/frete.service';
 import { CaminhaoModel } from '../../../models/caminhao.model';
 import { CaminhaoService } from '../../../services/caminhao.service';
 import { MotoristaModel } from '../../../models/motorista.model';
 import { MotoristaService } from '../../../services/motorista.service';
-import { CidadeModel } from '../../../models/cidade.model';
 import { CidadeService } from '../../../services/cidade.service';
 import { CargaModel } from '../../../models/carga.model';
 import { CargaService } from '../../../services/carga.service';
 import { FazendaModel } from '../../../models/fazenda.model';
 import { FazendaService } from '../../../services/fazenda.service';
 import { ToastService } from '../../../services/toast.service';
+import { intervaloMesAtual } from '../../../utils/periodo.util';
 
 type ColunaFrete = 'data' | 'nomeFazenda' | 'placa' | 'nomeMotorista' | 'porcentagemMotorista' | 'valor';
 
 @Component({
   selector: 'app-frete',
-  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule, SelectBusca],
   templateUrl: './frete.html',
   styleUrl: './frete.scss',
 })
@@ -31,8 +32,9 @@ export class Frete {
 
   caminhoes: CaminhaoModel[] = [];
   motoristas: MotoristaModel[] = [];
-  cidades: CidadeModel[] = [];
   cargas: CargaModel[] = [];
+  /** Formato usado pelo <app-select-busca>; calculado explicitamente (não getter) por performance. */
+  cidadesOpcoes: OpcaoSelectBusca[] = [];
   fazendas: FazendaModel[] = [];
 
   showForm = false;
@@ -40,8 +42,7 @@ export class Frete {
   editandoId: number | null = null;
 
   filtro = {
-    dataInicio: '',
-    dataFim: '',
+    ...intervaloMesAtual(),
     caminhaoId: null as number | null,
     motoristaId: null as number | null,
     fazendaId: null as number | null,
@@ -117,7 +118,9 @@ export class Frete {
     this.carregar();
     this.caminhaoService.listar().subscribe({ next: (data) => { this.caminhoes = data; } });
     this.motoristaService.listar().subscribe({ next: (data) => { this.motoristas = data; } });
-    this.cidadeService.listar().subscribe({ next: (data) => { this.cidades = data; } });
+    this.cidadeService.listar().subscribe({
+      next: (data) => { this.cidadesOpcoes = data.map(c => ({ id: c.id, label: `${c.nome}/${c.siglaEstado}` })); },
+    });
     this.cargaService.listar().subscribe({ next: (data) => { this.cargas = data; } });
     this.fazendaService.listar().subscribe({ next: (data) => { this.fazendas = data; } });
   }
@@ -174,6 +177,21 @@ export class Frete {
 
   fecharForm() {
     this.showForm = false;
+  }
+
+  detalhe: FreteModel | null = null;
+
+  abrirDetalhe(frete: FreteModel) {
+    this.detalhe = frete;
+  }
+
+  fecharDetalhe() {
+    this.detalhe = null;
+  }
+
+  editarDoDetalhe(frete: FreteModel) {
+    this.detalhe = null;
+    this.abrirEdicao(frete);
   }
 
   /** Acha a fazenda digitada na lista já carregada (case/espaço-insensitive) ou cria uma nova, sem cidade/contato. */

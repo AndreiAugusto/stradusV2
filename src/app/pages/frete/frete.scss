@@ -1,1 +1,37 @@
-/* Frete page — styles handled globally */
+.detalhe-valor-destaque {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-income);
+  margin-bottom: 1.5rem;
+}
+
+.detalhe-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.detalhe-item {
+  min-width: 0;
+}
+
+.detalhe-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.detalhe-valor {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+@media (max-width: 575.98px) {
+  .detalhe-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -100,7 +100,15 @@
       <div class="modal-panel-body">
         <div class="mb-3">
           <label class="form-label">Título</label>
-          <input type="text" class="form-control" formControlName="titulo" placeholder="Ex: CRLV 2026">
+          <input
+            type="text"
+            class="form-control"
+            formControlName="titulo"
+            placeholder="Ex: CRLV 2026"
+            [class.is-invalid]="form.get('titulo')?.invalid && form.get('titulo')?.touched">
+          <div class="invalid-feedback" *ngIf="form.get('titulo')?.invalid && form.get('titulo')?.touched">
+            Título é obrigatório.
+          </div>
         </div>
 
         <div class="row">
@@ -142,6 +150,7 @@
       <div class="modal-panel-footer">
         <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
         <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          <span *ngIf="salvando" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           {{ salvando ? (editandoId ? 'Salvando...' : 'Enviando...') : (editandoId ? 'Salvar' : 'Enviar') }}
         </button>
       </div>
@@ -150,13 +159,13 @@
 </div>
 
 <!-- Visualizador de documento (offcanvas) -->
-<div class="doc-viewer-backdrop" [class.show]="!!visualizando" (click)="fecharVisualizador()"></div>
-<div class="doc-viewer-panel" [class.open]="!!visualizando">
+<div class="offcanvas-backdrop" [class.show]="!!visualizando" (click)="fecharVisualizador()"></div>
+<div class="offcanvas-panel" [class.open]="!!visualizando">
   <ng-container *ngIf="visualizando as doc">
-    <div class="doc-viewer-header">
+    <div class="offcanvas-header">
       <div>
         <h5>{{ doc.titulo }}</h5>
-        <div class="doc-viewer-sub">{{ doc.nomeArquivo }} · {{ formatarTamanho(doc.tamanho) }}</div>
+        <div class="offcanvas-sub">{{ doc.nomeArquivo }} · {{ formatarTamanho(doc.tamanho) }}</div>
       </div>
       <div class="d-flex align-items-center gap-2">
         <a

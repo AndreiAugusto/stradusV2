@@ -2,15 +2,15 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Menu } from '../../components/menu/menu';
+import { SelectBusca, OpcaoSelectBusca } from '../../components/select-busca/select-busca';
 import { FazendaContatoModel, FazendaModel } from '../../../models/fazenda.model';
 import { FazendaService } from '../../../services/fazenda.service';
-import { CidadeModel } from '../../../models/cidade.model';
 import { CidadeService } from '../../../services/cidade.service';
 import { ToastService } from '../../../services/toast.service';
 
 @Component({
   selector: 'app-fazenda',
-  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule, SelectBusca],
   templateUrl: './fazenda.html',
   styleUrl: './fazenda.scss',
 })
@@ -18,7 +18,8 @@ export class Fazenda {
   isLoading = true;
   erro = false;
   fazendas: FazendaModel[] = [];
-  cidades: CidadeModel[] = [];
+  /** Formato usado pelo <app-select-busca>; calculado explicitamente (não getter) por performance. */
+  cidadesOpcoes: OpcaoSelectBusca[] = [];
 
   showForm = false;
   salvando = false;
@@ -43,7 +44,9 @@ export class Fazenda {
 
   ngOnInit() {
     this.carregar();
-    this.cidadeService.listar().subscribe({ next: (data) => { this.cidades = data; } });
+    this.cidadeService.listar().subscribe({
+      next: (data) => { this.cidadesOpcoes = data.map(c => ({ id: c.id, label: `${c.nome}/${c.siglaEstado}` })); },
+    });
   }
 
   carregar() {

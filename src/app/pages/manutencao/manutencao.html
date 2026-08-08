@@ -245,6 +245,7 @@
       <div class="modal-panel-footer">
         <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
         <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          <span *ngIf="salvando" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           {{ salvando ? 'Salvando...' : 'Salvar' }}
         </button>
       </div>

@@ -7,6 +7,7 @@ import { AbastecimentoService } from '../../../services/abastecimento.service';
 import { CaminhaoModel } from '../../../models/caminhao.model';
 import { CaminhaoService } from '../../../services/caminhao.service';
 import { ToastService } from '../../../services/toast.service';
+import { intervaloMesAtual } from '../../../utils/periodo.util';
 
 type ColunaAbastecimento = 'data' | 'placa' | 'quilometragem' | 'litros' | 'consumo' | 'custoTotal';
 
@@ -28,8 +29,7 @@ export class Abastecimento {
   editandoId: number | null = null;
 
   filtro = {
-    dataInicio: '',
-    dataFim: '',
+    ...intervaloMesAtual(),
     caminhaoId: null as number | null,
   };
 

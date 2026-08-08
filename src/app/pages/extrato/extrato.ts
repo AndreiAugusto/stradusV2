@@ -8,6 +8,7 @@ import { CaminhaoModel } from '../../../models/caminhao.model';
 import { CaminhaoService } from '../../../services/caminhao.service';
 import { MotoristaModel } from '../../../models/motorista.model';
 import { MotoristaService } from '../../../services/motorista.service';
+import { intervaloMesAtual } from '../../../utils/periodo.util';
 
 type Coluna = 'data' | 'placa' | 'motorista' | 'empresa' | 'historico' | 'despesas' | 'receitas';
 
@@ -39,8 +40,7 @@ export class Extrato {
     caminhaoId: number | null;
     motoristaId: number | null;
   } = {
-    dataInicio: '',
-    dataFim: '',
+    ...intervaloMesAtual(),
     tipos: { frete: true, abastecimento: true, manutencao: true, 'custo-fixo': true, 'salario-motorista': true },
     caminhaoId: null,
     motoristaId: null,

@@ -1,0 +1,67 @@
+.select-busca {
+  position: relative;
+}
+
+.select-busca-input-wrap {
+  position: relative;
+
+  input {
+    padding-right: 2.25rem;
+
+    &.disabled {
+      background: var(--color-bg-secondary, #F1F5F9);
+      cursor: not-allowed;
+    }
+  }
+}
+
+.select-busca-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    color: var(--color-danger, #EF4444);
+  }
+}
+
+.select-busca-dropdown {
+  position: fixed;
+  z-index: 1200;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.select-busca-item {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background: var(--color-bg-secondary, #F1F5F9);
+  }
+}
+
+.select-busca-empty,
+.select-busca-hint {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.select-busca-hint {
+  border-top: 1px solid var(--color-border);
+}

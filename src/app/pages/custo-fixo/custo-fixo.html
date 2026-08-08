@@ -53,7 +53,7 @@
           <div class="kpi-value" style="color: #EF4444">
             {{ totalMensal | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
           </div>
-          <div class="kpi-sub"><i class="bi bi-receipt" style="color:#EF4444"></i> Soma de todos os custos cadastrados</div>
+          <div class="kpi-sub"><i class="bi bi-receipt" style="color:#EF4444"></i> Soma dos custos ativos neste mês</div>
         </div>
       </div>
       <div class="col-sm-4">
@@ -175,6 +175,7 @@
                           <input type="number" step="0.01" class="form-control form-control-sm" style="width: 130px" [(ngModel)]="novoAjuste.valor">
                         </div>
                         <button class="btn btn-sm btn-primary-custom" [disabled]="salvandoAjuste" (click)="salvarAjuste(c.id!)">
+                          <span *ngIf="salvandoAjuste" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                           {{ salvandoAjuste ? 'Salvando...' : 'Salvar ajuste' }}
                         </button>
                       </div>
@@ -262,6 +263,7 @@
       <div class="modal-panel-footer">
         <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
         <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          <span *ngIf="salvando" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           {{ salvando ? 'Salvando...' : 'Salvar' }}
         </button>
       </div>

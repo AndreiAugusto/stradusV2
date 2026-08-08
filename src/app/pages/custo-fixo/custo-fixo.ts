@@ -7,6 +7,7 @@ import { CustoFixoService } from '../../../services/custo-fixo.service';
 import { CaminhaoModel } from '../../../models/caminhao.model';
 import { CaminhaoService } from '../../../services/caminhao.service';
 import { ToastService } from '../../../services/toast.service';
+import { intervaloMesAtual } from '../../../utils/periodo.util';
 
 type ColunaCustoFixo = 'descricao' | 'categoria' | 'placaCaminhao' | 'diaVencimento' | 'dataInicio' | 'dataFim' | 'valor';
 
@@ -59,7 +60,17 @@ export class CustoFixo {
   });
 
   get totalMensal() {
-    return this.custosFixosFiltrados.reduce((s, c) => s + (Number(c.valor) || 0), 0);
+    return this.custosFixosFiltrados
+      .filter((c) => this.ativoEsteMes(c))
+      .reduce((s, c) => s + (Number(c.valor) || 0), 0);
+  }
+
+  /** Mesmo critério do card "Custos Fixos" da página inicial: já começou e ainda não terminou dentro do mês corrente. */
+  private ativoEsteMes(c: CustoFixoModel): boolean {
+    const { dataInicio, dataFim } = intervaloMesAtual();
+    if (c.dataInicio.slice(0, 10) > dataFim) return false;
+    if (c.dataFim && c.dataFim.slice(0, 10) < dataInicio) return false;
+    return true;
   }
 
   get custosFixosFiltrados(): CustoFixoModel[] {

@@ -9,6 +9,7 @@ import { CaminhaoService } from '../../../services/caminhao.service';
 import { OficinaModel } from '../../../models/oficina.model';
 import { OficinaService } from '../../../services/oficina.service';
 import { ToastService } from '../../../services/toast.service';
+import { intervaloMesAtual } from '../../../utils/periodo.util';
 
 type ColunaManutencao = 'data' | 'placaCaminhao' | 'nomeOficina' | 'descricao' | 'custo';
 
@@ -34,8 +35,7 @@ export class Manutencao {
   carregandoParcelas = false;
 
   filtro = {
-    dataInicio: '',
-    dataFim: '',
+    ...intervaloMesAtual(),
     caminhaoId: null as number | null,
     oficinaId: null as number | null,
   };

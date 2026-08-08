@@ -119,7 +119,7 @@
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <tr *ngFor="let frete of fretesOrdenados">
+              <tr *ngFor="let frete of fretesOrdenados" style="cursor: pointer" (click)="abrirDetalhe(frete)">
                 <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ frete.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
                 <td style="text-align: left !important; font-size: 0.875rem">{{ frete.nomeFazenda || '—' }}</td>
                 <td style="font-size: 0.875rem; font-weight: 600">{{ frete.placa }}</td>
@@ -128,7 +128,7 @@
                 <td class="fw-semibold" style="color: #10B981">
                   {{ frete.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
                 </td>
-                <td>
+                <td (click)="$event.stopPropagation()">
                   <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(frete)">
                     <i class="bi bi-pencil"></i>
                   </button>
@@ -214,17 +214,11 @@
         <div class="row">
           <div class="col-sm-4 mb-3">
             <label class="form-label">Origem (opcional)</label>
-            <select class="form-select" formControlName="origemId">
-              <option [ngValue]="null">—</option>
-              <option *ngFor="let cid of cidades" [ngValue]="cid.id">{{ cid.nome }}/{{ cid.siglaEstado }}</option>
-            </select>
+            <app-select-busca formControlName="origemId" [opcoes]="cidadesOpcoes" placeholder="Buscar cidade..."></app-select-busca>
           </div>
           <div class="col-sm-4 mb-3">
             <label class="form-label">Destino (opcional)</label>
-            <select class="form-select" formControlName="destinoId">
-              <option [ngValue]="null">—</option>
-              <option *ngFor="let cid of cidades" [ngValue]="cid.id">{{ cid.nome }}/{{ cid.siglaEstado }}</option>
-            </select>
+            <app-select-busca formControlName="destinoId" [opcoes]="cidadesOpcoes" placeholder="Buscar cidade..."></app-select-busca>
           </div>
           <div class="col-sm-4 mb-3">
             <label class="form-label">Carga (opcional)</label>
@@ -239,9 +233,73 @@
       <div class="modal-panel-footer">
         <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
         <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          <span *ngIf="salvando" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
           {{ salvando ? 'Salvando...' : 'Salvar' }}
         </button>
       </div>
     </form>
   </div>
+</div>
+
+<!-- Detalhes do frete (offcanvas) -->
+<div class="offcanvas-backdrop" [class.show]="!!detalhe" (click)="fecharDetalhe()"></div>
+<div class="offcanvas-panel" [class.open]="!!detalhe">
+  <ng-container *ngIf="detalhe as frete">
+    <div class="offcanvas-header">
+      <div>
+        <h5>{{ frete.nomeFazenda || 'Frete' }}</h5>
+        <div class="offcanvas-sub">{{ frete.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-edit" (click)="editarDoDetalhe(frete)">
+          <i class="bi bi-pencil"></i> Editar
+        </button>
+        <button type="button" class="btn-close-custom" (click)="fecharDetalhe()">&times;</button>
+      </div>
+    </div>
+    <div class="offcanvas-body">
+      <div class="detalhe-valor-destaque">
+        {{ frete.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+      </div>
+
+      <div class="detalhe-grid">
+        <div class="detalhe-item">
+          <div class="detalhe-label">Fazenda</div>
+          <div class="detalhe-valor">{{ frete.nomeFazenda || '—' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Data</div>
+          <div class="detalhe-valor">{{ frete.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Caminhão</div>
+          <div class="detalhe-valor">{{ frete.placa }} — {{ frete.modeloCaminhao }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Motorista</div>
+          <div class="detalhe-valor">{{ frete.nomeMotorista }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">% Motorista</div>
+          <div class="detalhe-valor">{{ frete.porcentagemMotorista }}%</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Valor do Motorista</div>
+          <div class="detalhe-valor">{{ (frete.valor * frete.porcentagemMotorista / 100) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Origem</div>
+          <div class="detalhe-valor">{{ frete.nomeOrigem || '—' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Destino</div>
+          <div class="detalhe-valor">{{ frete.nomeDestino || '—' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Carga</div>
+          <div class="detalhe-valor">{{ frete.nomeCarga || '—' }}</div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
 </div>
