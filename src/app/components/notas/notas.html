@@ -1,0 +1,75 @@
+<div class="detalhe-secao">
+  <h6><i class="bi bi-receipt"></i> Notas <span class="notas-qtd" *ngIf="notas.length > 0">{{ notas.length }}</span></h6>
+
+  <div *ngIf="carregando && notas.length === 0" class="py-3 text-center">
+    <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
+  </div>
+
+  <div *ngIf="!carregando && notas.length === 0" class="notas-vazio">
+    <i class="bi bi-receipt-cutoff"></i>
+    <span>Nenhuma nota anexada ainda.</span>
+  </div>
+
+  <div *ngIf="notas.length > 1" class="notas-abas">
+    <button
+      type="button"
+      *ngFor="let n of notas; let i = index"
+      class="notas-aba"
+      [class.active]="selecionada?.id === n.id"
+      (click)="selecionar(n)">
+      <i class="bi" [ngClass]="tipo(n) === 'pdf' ? 'bi-file-earmark-pdf' : 'bi-image'"></i>
+      Nota {{ i + 1 }}
+    </button>
+  </div>
+
+  <ng-container *ngIf="selecionada as nota">
+    <div class="notas-preview" [class.pdf]="tipo(nota) === 'pdf'">
+      <div *ngIf="carregandoArquivo && !arquivo(nota)" class="notas-preview-carregando">
+        <div class="spinner-border" style="color: var(--color-primary)" role="status"></div>
+      </div>
+      <ng-container *ngIf="arquivo(nota) as a">
+        <img
+          *ngIf="tipo(nota) === 'imagem'"
+          [src]="a.url"
+          [alt]="nota.nomeArquivo"
+          title="Clique para ver em tamanho real"
+          (click)="abrirEmNovaAba(nota)">
+        <iframe *ngIf="tipo(nota) === 'pdf'" [src]="a.seguro" [title]="nota.nomeArquivo"></iframe>
+        <div *ngIf="tipo(nota) === 'outro'" class="notas-preview-fallback">
+          <i class="bi bi-file-earmark"></i>
+          <p>Pré-visualização não disponível.</p>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="notas-info">
+      <div class="notas-info-nome">
+        <div>{{ nota.nomeArquivo }}</div>
+        <small>
+          {{ formatarTamanho(nota.tamanho) }}
+          <ng-container *ngIf="nota.criadoEm"> · enviada em {{ nota.criadoEm | date:'dd/MM/yyyy HH:mm' }}</ng-container>
+        </small>
+      </div>
+      <div class="notas-info-acoes">
+        <button type="button" class="btn btn-outline-secondary" [disabled]="!arquivo(nota)" (click)="abrirEmNovaAba(nota)" title="Abrir em tela cheia">
+          <i class="bi bi-arrows-fullscreen"></i><span> Abrir</span>
+        </button>
+        <a class="btn btn-outline-secondary" [class.disabled]="!arquivo(nota)" [href]="arquivo(nota)?.url" [download]="nota.nomeArquivo" title="Baixar">
+          <i class="bi bi-download"></i><span> Baixar</span>
+        </a>
+        <button type="button" class="btn btn-outline-danger" (click)="excluir(nota)" title="Excluir nota">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="notas-adicionar">
+    <div class="detalhe-label mb-2">{{ notas.length > 0 ? 'Anexar outra nota' : 'Anexar nota' }}</div>
+    <app-seletor-notas [desabilitado]="enviando" (selecionados)="enviar($event)"></app-seletor-notas>
+    <div *ngIf="enviando" class="notas-enviando">
+      <span class="spinner-border spinner-border-sm" role="status"></span>
+      Enviando {{ enviandoQtd > 1 ? enviandoQtd + ' arquivos' : 'nota' }}...
+    </div>
+  </div>
+</div>

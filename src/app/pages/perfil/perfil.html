@@ -1,0 +1,129 @@
+<div class="app-layout">
+    <app-menu></app-menu>
+    <main class="page-content">
+
+        <div class="page-header">
+            <h1>Meu Perfil</h1>
+            <p class="page-subtitle">Seus dados de acesso ao sistema</p>
+        </div>
+
+        <div *ngIf="erro" class="alert alert-danger d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Erro ao carregar seus dados.
+        </div>
+
+        <div *ngIf="isLoading" class="text-center py-4">
+            <div class="spinner-border" style="color: var(--color-primary)" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+        </div>
+
+        <div *ngIf="!isLoading && perfil" class="card perfil-card">
+            <div class="card-body">
+                <div class="perfil-topo">
+                    <div class="perfil-avatar">{{ perfil.nome.charAt(0).toUpperCase() }}</div>
+                    <div>
+                        <div class="perfil-nome">{{ perfil.nome }}</div>
+                        <div class="perfil-email">{{ perfil.email }}</div>
+                    </div>
+                </div>
+
+                <dl class="perfil-dados">
+                    <dt>Nome</dt>
+                    <dd>{{ perfil.nome }}</dd>
+                    <dt>E-mail</dt>
+                    <dd>{{ perfil.email }}</dd>
+                    <dt>Senha</dt>
+                    <dd>••••••••</dd>
+                </dl>
+
+                <div class="d-flex flex-wrap gap-2 justify-content-end">
+                    <button class="btn btn-outline-secondary" (click)="abrirAlterarSenha()">
+                        <i class="bi bi-key"></i> Alterar senha
+                    </button>
+                    <button class="btn btn-primary-custom" (click)="abrirEdicaoDados()">
+                        <i class="bi bi-pencil"></i> Editar dados
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- Modal: editar nome/e-mail -->
+<div class="modal-overlay" *ngIf="modo === 'dados'" (click)="fecharForm()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel-header">
+      <h5><span class="modal-icon"><i class="bi bi-person-fill"></i></span>Editar dados</h5>
+      <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="formDados" (ngSubmit)="salvarDados()">
+      <div class="modal-panel-body">
+        <div class="mb-3">
+          <label class="form-label">Nome</label>
+          <input type="text" class="form-control" formControlName="nome" [class.is-invalid]="invalido(formDados, 'nome')">
+          <div class="invalid-feedback">Informe seu nome.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">E-mail</label>
+          <input type="email" class="form-control" formControlName="email" [class.is-invalid]="invalido(formDados, 'email')">
+          <div class="invalid-feedback">Informe um e-mail válido.</div>
+        </div>
+        <div>
+          <label class="form-label">Senha atual</label>
+          <input type="password" class="form-control" formControlName="senhaAtual" autocomplete="current-password" [class.is-invalid]="invalido(formDados, 'senhaAtual')">
+          <div class="invalid-feedback">Informe sua senha atual para confirmar.</div>
+        </div>
+      </div>
+
+      <div class="modal-panel-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          <span *ngIf="salvando" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          {{ salvando ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: alterar senha -->
+<div class="modal-overlay" *ngIf="modo === 'senha'" (click)="fecharForm()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel-header">
+      <h5><span class="modal-icon"><i class="bi bi-key-fill"></i></span>Alterar senha</h5>
+      <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
+    </div>
+
+    <form [formGroup]="formSenha" (ngSubmit)="salvarSenha()">
+      <div class="modal-panel-body">
+        <div class="mb-3">
+          <label class="form-label">Senha atual</label>
+          <input type="password" class="form-control" formControlName="senhaAtual" autocomplete="current-password" [class.is-invalid]="invalido(formSenha, 'senhaAtual')">
+          <div class="invalid-feedback">Informe sua senha atual.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Nova senha</label>
+          <input type="password" class="form-control" formControlName="novaSenha" autocomplete="new-password" [class.is-invalid]="invalido(formSenha, 'novaSenha')">
+          <div class="invalid-feedback">A senha deve ter pelo menos 4 caracteres.</div>
+        </div>
+        <div>
+          <label class="form-label">Confirmar nova senha</label>
+          <input type="password" class="form-control" formControlName="confirmarSenha" autocomplete="new-password"
+            [class.is-invalid]="(formSenha.hasError('senhasDiferentes') || invalido(formSenha, 'confirmarSenha')) && formSenha.get('confirmarSenha')?.touched">
+          <div class="invalid-feedback">As senhas não conferem.</div>
+        </div>
+      </div>
+
+      <div class="modal-panel-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="fecharForm()">Cancelar</button>
+        <button type="submit" class="btn btn-primary-custom" [disabled]="salvando">
+          <span *ngIf="salvando" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          {{ salvando ? 'Salvando...' : 'Salvar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

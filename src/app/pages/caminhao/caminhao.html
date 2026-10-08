@@ -30,11 +30,11 @@
                             </tr>
                         </thead>
                         <tbody *ngIf="!isLoading">
-                            <tr *ngFor="let caminhao of caminhoes">
+                            <tr *ngFor="let caminhao of caminhoes" class="linha-clicavel" (click)="abrirDetalhe(caminhao)">
                                 <td style="font-weight: 700; letter-spacing: 0.02em">{{ caminhao.placa }}</td>
                                 <td>{{ caminhao.modelo }}</td>
                                 <td>{{ caminhao.ano  | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
-                                <td>
+                                <td (click)="$event.stopPropagation()">
                                     <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(caminhao)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
@@ -70,7 +70,7 @@
 <div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-panel-header">
-      <h5>{{ editandoId ? 'Editar Caminhão' : 'Adicionar Caminhão' }}</h5>
+      <h5><span class="modal-icon"><i class="bi bi-truck"></i></span>{{ editandoId ? 'Editar Caminhão' : 'Adicionar Caminhão' }}</h5>
       <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
     </div>
 
@@ -101,4 +101,75 @@
       </div>
     </form>
   </div>
+</div>
+
+<!-- Detalhes (offcanvas) -->
+<div class="offcanvas-backdrop" [class.show]="!!detalhe" (click)="fecharDetalhe()"></div>
+<div class="offcanvas-panel" [class.open]="!!detalhe">
+  <ng-container *ngIf="detalhe as item">
+    <div class="offcanvas-header">
+      <div>
+        <h5>{{ item.placa }}</h5>
+        <div class="offcanvas-sub">{{ item.modelo }}</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-edit" (click)="editarDoDetalhe(item)">
+          <i class="bi bi-pencil"></i> Editar
+        </button>
+        <button type="button" class="btn-close-custom" (click)="fecharDetalhe()">&times;</button>
+      </div>
+    </div>
+    <div class="offcanvas-body">
+      <div class="detalhe-grid">
+        <div class="detalhe-item">
+          <div class="detalhe-label">Placa</div>
+          <div class="detalhe-valor">{{ item.placa }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Modelo</div>
+          <div class="detalhe-valor">{{ item.modelo }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Ano</div>
+          <div class="detalhe-valor">{{ item.ano | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</div>
+        </div>
+      </div>
+
+      <div class="detalhe-secao">
+        <h6><i class="bi bi-bar-chart"></i> Histórico completo</h6>
+        <div *ngIf="carregandoHistorico" class="py-2 text-center">
+          <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
+        </div>
+        <ng-container *ngIf="!carregandoHistorico && fretes">
+          <div class="detalhe-resumo" *ngIf="resumo(item.id!) as r">
+          <div class="detalhe-resumo-card">
+            <div class="detalhe-resumo-titulo"><i class="bi bi-box-seam-fill"></i> Fretes</div>
+            <div class="detalhe-resumo-qtd">{{ r.fretes }}</div>
+            <div class="detalhe-resumo-valor" style="color: var(--color-income)">{{ r.receita | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          </div>
+          <div class="detalhe-resumo-card">
+            <div class="detalhe-resumo-titulo"><i class="bi bi-fuel-pump-fill"></i> Abastecimentos</div>
+            <div class="detalhe-resumo-qtd">{{ r.abastecimentos }}</div>
+            <div class="detalhe-resumo-valor" style="color: var(--color-expense)">{{ r.custoAbastecimento | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          </div>
+          <div class="detalhe-resumo-card">
+            <div class="detalhe-resumo-titulo"><i class="bi bi-wrench-adjustable"></i> Manutenções</div>
+            <div class="detalhe-resumo-qtd">{{ r.manutencoes }}</div>
+            <div class="detalhe-resumo-valor" style="color: var(--color-expense)">{{ r.custoManutencao | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          </div>
+          </div>
+          <div class="detalhe-grid mt-4" *ngIf="resumo(item.id!) as r">
+            <div class="detalhe-item">
+              <div class="detalhe-label">Última quilometragem</div>
+              <div class="detalhe-valor">{{ r.ultimoKm ? (r.ultimoKm | number:'1.0-0':'pt-BR') + ' km' : '—' }}</div>
+            </div>
+            <div class="detalhe-item">
+              <div class="detalhe-label">Total abastecido</div>
+              <div class="detalhe-valor">{{ r.litros | number:'1.0-0':'pt-BR' }} L</div>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
 </div>

@@ -102,7 +102,7 @@
             </thead>
             <tbody *ngIf="!isLoading">
               <ng-container *ngFor="let c of custosFixosOrdenados">
-                <tr>
+                <tr class="linha-clicavel" (click)="abrirDetalhe(c)">
                   <td style="text-align: left !important; font-size: 0.875rem">{{ c.descricao }}</td>
                   <td style="font-size: 0.875rem">{{ c.categoria || '—' }}</td>
                   <td style="font-size: 0.875rem; font-weight: 600">{{ c.placaCaminhao || 'Geral' }}</td>
@@ -114,13 +114,13 @@
                   <td class="fw-semibold" style="color: #EF4444">
                     {{ c.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
                   </td>
-                  <td>
+                  <td (click)="$event.stopPropagation()">
                     <button class="tipo-badge" style="background: var(--color-primary); cursor: pointer; border: none" (click)="toggleAjustes(c)">
                       {{ ajustesPorCustoFixo[c.id!]?.length ?? c.totalAjustes ?? 0 }}
                       <i class="bi" [ngClass]="expandidoId === c.id ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
                     </button>
                   </td>
-                  <td>
+                  <td (click)="$event.stopPropagation()">
                     <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(c)">
                       <i class="bi bi-pencil"></i>
                     </button>
@@ -210,7 +210,7 @@
 <div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-panel-header">
-      <h5>{{ editandoId ? 'Editar Custo Fixo' : 'Novo Custo Fixo' }}</h5>
+      <h5><span class="modal-icon"><i class="bi bi-receipt"></i></span>{{ editandoId ? 'Editar Custo Fixo' : 'Novo Custo Fixo' }}</h5>
       <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
     </div>
 
@@ -269,4 +269,79 @@
       </div>
     </form>
   </div>
+</div>
+
+<!-- Detalhes (offcanvas) -->
+<div class="offcanvas-backdrop" [class.show]="!!detalhe" (click)="fecharDetalhe()"></div>
+<div class="offcanvas-panel" [class.open]="!!detalhe">
+  <ng-container *ngIf="detalhe as item">
+    <div class="offcanvas-header">
+      <div>
+        <h5>{{ item.descricao }}</h5>
+        <div class="offcanvas-sub">{{ item.categoria || 'Sem categoria' }} · {{ item.placaCaminhao || 'Geral' }}</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-edit" (click)="editarDoDetalhe(item)">
+          <i class="bi bi-pencil"></i> Editar
+        </button>
+        <button type="button" class="btn-close-custom" (click)="fecharDetalhe()">&times;</button>
+      </div>
+    </div>
+    <div class="offcanvas-body">
+      <div class="detalhe-valor-destaque despesa">{{ item.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}<span class="detalhe-vazio"> / mês</span></div>
+
+      <div class="detalhe-grid">
+        <div class="detalhe-item inteiro">
+          <div class="detalhe-label">Descrição</div>
+          <div class="detalhe-valor">{{ item.descricao }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Categoria</div>
+          <div class="detalhe-valor">{{ item.categoria || '—' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Caminhão</div>
+          <div class="detalhe-valor">{{ item.placaCaminhao || 'Geral (todos)' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Vencimento</div>
+          <div class="detalhe-valor">Todo dia {{ item.diaVencimento }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Início</div>
+          <div class="detalhe-valor">{{ item.dataInicio | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Fim</div>
+          <div class="detalhe-valor">{{ item.dataFim ? (item.dataFim | date:'dd/MM/yyyy':'UTC':'pt-BR') : 'Indeterminado' }}</div>
+        </div>
+      </div>
+
+      <div class="detalhe-secao">
+        <h6><i class="bi bi-sliders"></i> Ajustes de valor por mês</h6>
+        <div *ngIf="carregandoAjustes && !ajustesPorCustoFixo[item.id!]" class="py-2 text-center">
+          <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
+        </div>
+        <ng-container *ngIf="ajustesPorCustoFixo[item.id!] as ajustes">
+          <table class="table table-sm mb-0" *ngIf="ajustes.length > 0">
+            <thead>
+              <tr>
+                <th>Mês/Ano</th>
+                <th>Valor Ajustado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let aj of ajustes">
+                <td>{{ nomeMes(aj.mes) }}/{{ aj.ano }}</td>
+                <td>{{ aj.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="ajustes.length === 0" class="detalhe-vazio">
+            Nenhum ajuste — o valor padrão vale em todos os meses.
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
 </div>

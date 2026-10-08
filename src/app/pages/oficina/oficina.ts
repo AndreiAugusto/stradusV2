@@ -5,6 +5,8 @@ import { Menu } from '../../components/menu/menu';
 import { OficinaModel } from '../../../models/oficina.model';
 import { OficinaService } from '../../../services/oficina.service';
 import { ToastService } from '../../../services/toast.service';
+import { ManutencaoModel } from '../../../models/manutencao.model';
+import { ManutencaoService } from '../../../services/manutencao.service';
 
 @Component({
   selector: 'app-oficina',
@@ -25,7 +27,38 @@ export class Oficina {
     nomeOficina: new FormControl('', [Validators.required]),
   });
 
-  constructor(private service: OficinaService, private toast: ToastService) {}
+  constructor(
+    private service: OficinaService,
+    private manutencaoService: ManutencaoService,
+    private toast: ToastService,
+  ) {}
+
+  /** Manutenções usadas no painel de detalhes — carregadas só na primeira abertura. */
+  manutencoes: ManutencaoModel[] | null = null;
+  carregandoHistorico = false;
+
+  private carregarHistorico() {
+    if (this.manutencoes || this.carregandoHistorico) return;
+    this.carregandoHistorico = true;
+    this.manutencaoService.listar().subscribe({
+      next: (data) => {
+        this.manutencoes = data;
+        this.carregandoHistorico = false;
+      },
+      error: () => { this.carregandoHistorico = false; },
+    });
+  }
+
+  resumo(oficinaId: number) {
+    const lista = (this.manutencoes ?? [])
+      .filter(m => m.oficinaId === oficinaId)
+      .sort((a, b) => (a.data < b.data ? 1 : -1));
+    return {
+      total: lista.length,
+      custo: lista.reduce((s, m) => s + Number(m.custo ?? 0), 0),
+      ultimas: lista.slice(0, 5),
+    };
+  }
 
   ngOnInit() {
     this.carregar();
@@ -97,5 +130,21 @@ export class Oficina {
         this.salvando = false;
       },
     });
+  }
+
+  detalhe: OficinaModel | null = null;
+
+  abrirDetalhe(item: OficinaModel) {
+    this.detalhe = item;
+    this.carregarHistorico();
+  }
+
+  fecharDetalhe() {
+    this.detalhe = null;
+  }
+
+  editarDoDetalhe(item: OficinaModel) {
+    this.detalhe = null;
+    this.abrirEdicao(item);
   }
 }

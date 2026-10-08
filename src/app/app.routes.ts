@@ -66,4 +66,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./pages/escritorio/escritorio').then(m => m.Escritorio),
   },
+  {
+    path: 'perfil',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/perfil/perfil').then(m => m.Perfil),
+  },
 ];

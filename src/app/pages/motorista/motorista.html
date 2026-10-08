@@ -30,11 +30,11 @@
                             </tr>
                         </thead>
                         <tbody *ngIf="!isLoading">
-                            <tr *ngFor="let motorista of motoristas">
+                            <tr *ngFor="let motorista of motoristas" class="linha-clicavel" (click)="abrirDetalhe(motorista)">
                                 <td style="font-weight: 600">{{ motorista.nomeMotorista }}</td>
                                 <td>{{ motorista.nascimento | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
                                 <td>{{ motorista.nCarteira || '—' }}</td>
-                                <td>
+                                <td (click)="$event.stopPropagation()">
                                     <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(motorista)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
@@ -70,7 +70,7 @@
 <div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-panel-header">
-      <h5>{{ editandoId ? 'Editar Motorista' : 'Adicionar Motorista' }}</h5>
+      <h5><span class="modal-icon"><i class="bi bi-person-badge-fill"></i></span>{{ editandoId ? 'Editar Motorista' : 'Adicionar Motorista' }}</h5>
       <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
     </div>
 
@@ -101,4 +101,85 @@
       </div>
     </form>
   </div>
+</div>
+
+<!-- Detalhes (offcanvas) -->
+<div class="offcanvas-backdrop" [class.show]="!!detalhe" (click)="fecharDetalhe()"></div>
+<div class="offcanvas-panel" [class.open]="!!detalhe">
+  <ng-container *ngIf="detalhe as item">
+    <div class="offcanvas-header">
+      <div>
+        <h5>{{ item.nomeMotorista }}</h5>
+        <div class="offcanvas-sub">Motorista</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-edit" (click)="editarDoDetalhe(item)">
+          <i class="bi bi-pencil"></i> Editar
+        </button>
+        <button type="button" class="btn-close-custom" (click)="fecharDetalhe()">&times;</button>
+      </div>
+    </div>
+    <div class="offcanvas-body">
+      <div class="detalhe-grid">
+        <div class="detalhe-item inteiro">
+          <div class="detalhe-label">Nome</div>
+          <div class="detalhe-valor">{{ item.nomeMotorista }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Nascimento</div>
+          <div class="detalhe-valor">{{ item.nascimento ? (item.nascimento | date:'dd/MM/yyyy':'UTC':'pt-BR') : '—' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Nº da Carteira</div>
+          <div class="detalhe-valor">{{ item.nCarteira || '—' }}</div>
+        </div>
+      </div>
+
+      <div class="detalhe-secao">
+        <h6><i class="bi bi-box-seam"></i> Fretes realizados</h6>
+        <div *ngIf="carregandoHistorico" class="py-2 text-center">
+          <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
+        </div>
+        <ng-container *ngIf="!carregandoHistorico && fretes">
+          <ng-container *ngIf="resumo(item.id!) as r">
+            <div class="detalhe-resumo">
+          <div class="detalhe-resumo-card">
+            <div class="detalhe-resumo-titulo"><i class="bi bi-box-seam-fill"></i> Fretes</div>
+            <div class="detalhe-resumo-qtd">{{ r.fretes }}</div>
+            <div class="detalhe-resumo-valor" style="color: var(--color-income)">{{ r.bruto | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          </div>
+          <div class="detalhe-resumo-card">
+            <div class="detalhe-resumo-titulo"><i class="bi bi-cash-coin"></i> Comissão total</div>
+            <div class="detalhe-resumo-qtd">{{ r.comissao | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+            <div class="detalhe-resumo-valor" style="color: var(--color-text-muted)">soma de todos os fretes</div>
+          </div>
+            </div>
+
+            <div class="mt-4" *ngIf="r.ultimos.length > 0">
+              <div class="detalhe-label mb-2">Últimos fretes</div>
+              <table class="table table-sm mb-0">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th style="text-align: left !important">Fazenda</th>
+                    <th>Valor</th>
+                    <th>Comissão</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let f of r.ultimos">
+                    <td>{{ f.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
+                    <td style="text-align: left !important">{{ f.nomeFazenda || '—' }}</td>
+                    <td>{{ f.valor | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                    <td>{{ comissao(f) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div *ngIf="r.ultimos.length === 0" class="detalhe-vazio mt-3">Nenhum frete registrado para este motorista.</div>
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
 </div>

@@ -15,13 +15,16 @@ import { CargaService } from '../../../services/carga.service';
 import { FazendaModel } from '../../../models/fazenda.model';
 import { FazendaService } from '../../../services/fazenda.service';
 import { ToastService } from '../../../services/toast.service';
+import { NotaService, mensagemErroUpload } from '../../../services/nota.service';
+import { SeletorNotas } from '../../components/seletor-notas/seletor-notas';
+import { Notas } from '../../components/notas/notas';
 import { intervaloMesAtual } from '../../../utils/periodo.util';
 
 type ColunaFrete = 'data' | 'nomeFazenda' | 'placa' | 'nomeMotorista' | 'porcentagemMotorista' | 'valor';
 
 @Component({
   selector: 'app-frete',
-  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule, SelectBusca],
+  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule, SelectBusca, SeletorNotas, Notas],
   templateUrl: './frete.html',
   styleUrl: './frete.scss',
 })
@@ -111,6 +114,7 @@ export class Frete {
     private cidadeService: CidadeService,
     private cargaService: CargaService,
     private fazendaService: FazendaService,
+    private notaService: NotaService,
     private toast: ToastService,
   ) {}
 
@@ -152,6 +156,7 @@ export class Frete {
 
   abrirNovo() {
     this.editandoId = null;
+    this.notasPendentes = [];
     this.form.reset({
       fazendaNome: '', valor: null, data: '', caminhaoId: null, motoristaId: null,
       porcentagemMotorista: 12, origemId: null, destinoId: null, cargaId: null,
@@ -161,6 +166,7 @@ export class Frete {
 
   abrirEdicao(item: FreteModel) {
     this.editandoId = item.id ?? null;
+    this.notasPendentes = [];
     this.form.reset({
       fazendaNome: item.nomeFazenda ?? '',
       valor: item.valor,
@@ -173,6 +179,17 @@ export class Frete {
       cargaId: item.carga ?? null,
     });
     this.showForm = true;
+  }
+
+  /** Notas escolhidas no modal — só são enviadas depois que o registro é salvo (precisa do id). */
+  notasPendentes: File[] = [];
+
+  private concluirSalvar(res: any) {
+    if (res) this.toast.deResposta(res);
+    this.salvando = false;
+    this.showForm = false;
+    this.notasPendentes = [];
+    this.carregar();
   }
 
   fecharForm() {
@@ -250,11 +267,19 @@ export class Frete {
         : this.service.criar(payload);
 
       request.subscribe({
-        next: (res) => {
-          this.toast.deResposta(res);
-          this.salvando = false;
-          this.showForm = false;
-          this.carregar();
+        next: (res: any) => {
+          const id = this.editandoId ?? res?.id;
+          if (res?.error || !id || this.notasPendentes.length === 0) {
+            this.concluirSalvar(res);
+            return;
+          }
+          this.notaService.enviarTodos(this.notasPendentes, { freteId: id }).subscribe({
+            next: () => this.concluirSalvar(res),
+            error: (err) => {
+              this.toast.erro(`Frete salvo, mas a nota não foi enviada: ${mensagemErroUpload(err)}`);
+              this.concluirSalvar(null);
+            },
+          });
         },
         error: () => {
           this.toast.erro('Erro ao comunicar com o servidor.');

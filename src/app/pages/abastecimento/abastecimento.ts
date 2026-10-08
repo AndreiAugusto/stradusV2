@@ -205,4 +205,19 @@ export class Abastecimento {
       },
     });
   }
+
+  detalhe: AbastecimentoModel | null = null;
+
+  abrirDetalhe(item: AbastecimentoModel) {
+    this.detalhe = item;
+  }
+
+  fecharDetalhe() {
+    this.detalhe = null;
+  }
+
+  editarDoDetalhe(item: AbastecimentoModel) {
+    this.detalhe = null;
+    this.abrirEdicao(item);
+  }
 }

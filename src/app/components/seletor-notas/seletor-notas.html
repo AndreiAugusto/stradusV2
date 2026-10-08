@@ -1,0 +1,32 @@
+<div class="seletor-botoes">
+  <label class="btn-nota btn-nota-foto" [class.disabled]="desabilitado">
+    <i class="bi bi-camera-fill"></i>
+    <span>Tirar foto</span>
+    <input type="file" accept="image/*" capture="environment" hidden [disabled]="desabilitado" (change)="aoEscolher($event, true)">
+  </label>
+  <label class="btn-nota" [class.disabled]="desabilitado">
+    <i class="bi bi-paperclip"></i>
+    <span>Anexar arquivo</span>
+    <input type="file" accept="image/*,application/pdf" multiple hidden [disabled]="desabilitado" (change)="aoEscolher($event, false)">
+  </label>
+</div>
+
+<div *ngIf="erro" class="seletor-erro">
+  <i class="bi bi-exclamation-circle"></i> {{ erro }}
+</div>
+
+<ul *ngIf="arquivos && arquivos.length > 0" class="seletor-lista">
+  <li *ngFor="let a of arquivos">
+    <img *ngIf="preview(a) as src; else iconePdf" [src]="src" alt="">
+    <ng-template #iconePdf>
+      <span class="seletor-icone"><i class="bi bi-file-earmark-pdf-fill"></i></span>
+    </ng-template>
+    <div class="seletor-nome">
+      <div>{{ a.name }}</div>
+      <small>{{ formatarTamanho(a.size) }}</small>
+    </div>
+    <button type="button" class="seletor-remover" (click)="remover(a)" title="Remover">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </li>
+</ul>

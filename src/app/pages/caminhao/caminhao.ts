@@ -1,10 +1,17 @@
 import { Component } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Menu } from '../../components/menu/menu';
 import { CaminhaoModel } from '../../../models/caminhao.model';
 import { CaminhaoService } from '../../../services/caminhao.service';
 import { ToastService } from '../../../services/toast.service';
+import { FreteModel } from '../../../models/frete.model';
+import { FreteService } from '../../../services/frete.service';
+import { AbastecimentoModel } from '../../../models/abastecimento.model';
+import { AbastecimentoService } from '../../../services/abastecimento.service';
+import { ManutencaoModel } from '../../../models/manutencao.model';
+import { ManutencaoService } from '../../../services/manutencao.service';
 
 @Component({
   selector: 'app-caminhao',
@@ -27,7 +34,54 @@ export class Caminhao {
     placa:  new FormControl('', [Validators.required]),
   });
 
-  constructor(private service: CaminhaoService, private toast: ToastService) {}
+  constructor(
+    private service: CaminhaoService,
+    private freteService: FreteService,
+    private abastecimentoService: AbastecimentoService,
+    private manutencaoService: ManutencaoService,
+    private toast: ToastService,
+  ) {}
+
+  /** Histórico usado no painel de detalhes — carregado só na primeira abertura. */
+  fretes: FreteModel[] | null = null;
+  abastecimentos: AbastecimentoModel[] = [];
+  manutencoes: ManutencaoModel[] = [];
+  carregandoHistorico = false;
+
+  private carregarHistorico() {
+    if (this.fretes || this.carregandoHistorico) return;
+    this.carregandoHistorico = true;
+    forkJoin({
+      fretes: this.freteService.listar(),
+      abastecimentos: this.abastecimentoService.listar(),
+      manutencoes: this.manutencaoService.listar(),
+    }).subscribe({
+      next: (r) => {
+        this.fretes = r.fretes;
+        this.abastecimentos = r.abastecimentos;
+        this.manutencoes = r.manutencoes;
+        this.carregandoHistorico = false;
+      },
+      error: () => { this.carregandoHistorico = false; },
+    });
+  }
+
+  resumo(caminhaoId: number) {
+    const fretes = (this.fretes ?? []).filter(f => f.caminhaoId === caminhaoId);
+    const abast = this.abastecimentos.filter(a => a.caminhaoId === caminhaoId);
+    const manut = this.manutencoes.filter(m => m.caminhaoId === caminhaoId);
+    const ultimoKm = abast.reduce((max, a) => Math.max(max, a.quilometragem ?? 0), 0);
+    return {
+      fretes: fretes.length,
+      receita: fretes.reduce((s, f) => s + Number(f.valor ?? 0), 0),
+      abastecimentos: abast.length,
+      litros: abast.reduce((s, a) => s + Number(a.litros ?? 0), 0),
+      custoAbastecimento: abast.reduce((s, a) => s + Number(a.custoTotal ?? 0), 0),
+      manutencoes: manut.length,
+      custoManutencao: manut.reduce((s, m) => s + Number(m.custo ?? 0), 0),
+      ultimoKm: ultimoKm || null,
+    };
+  }
 
   ngOnInit() {
     this.carregar();
@@ -108,5 +162,21 @@ export class Caminhao {
         this.salvando = false;
       },
     });
+  }
+
+  detalhe: CaminhaoModel | null = null;
+
+  abrirDetalhe(item: CaminhaoModel) {
+    this.detalhe = item;
+    this.carregarHistorico();
+  }
+
+  fecharDetalhe() {
+    this.detalhe = null;
+  }
+
+  editarDoDetalhe(item: CaminhaoModel) {
+    this.detalhe = null;
+    this.abrirEdicao(item);
   }
 }

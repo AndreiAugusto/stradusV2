@@ -213,16 +213,19 @@ export class CustoFixo {
     }
     this.expandidoId = item.id;
     this.novoAjuste = { mes: new Date().getMonth() + 1, ano: new Date().getFullYear(), valor: null };
-    if (!this.ajustesPorCustoFixo[item.id]) {
-      this.carregandoAjustes = true;
-      this.service.listarAjustes(item.id).subscribe({
-        next: (ajustes) => {
-          this.ajustesPorCustoFixo[item.id!] = ajustes;
-          this.carregandoAjustes = false;
-        },
-        error: () => { this.carregandoAjustes = false; },
-      });
-    }
+    this.carregarAjustes(item.id);
+  }
+
+  private carregarAjustes(id: number) {
+    if (this.ajustesPorCustoFixo[id]) return;
+    this.carregandoAjustes = true;
+    this.service.listarAjustes(id).subscribe({
+      next: (ajustes) => {
+        this.ajustesPorCustoFixo[id] = ajustes;
+        this.carregandoAjustes = false;
+      },
+      error: () => { this.carregandoAjustes = false; },
+    });
   }
 
   salvarAjuste(custoFixoId: number) {
@@ -273,5 +276,21 @@ export class CustoFixo {
 
   nomeMes(mes: number): string {
     return this.meses.find(m => m.valor === mes)?.nome ?? String(mes);
+  }
+
+  detalhe: CustoFixoModel | null = null;
+
+  abrirDetalhe(item: CustoFixoModel) {
+    this.detalhe = item;
+    if (item.id) this.carregarAjustes(item.id);
+  }
+
+  fecharDetalhe() {
+    this.detalhe = null;
+  }
+
+  editarDoDetalhe(item: CustoFixoModel) {
+    this.detalhe = null;
+    this.abrirEdicao(item);
   }
 }

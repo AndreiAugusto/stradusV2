@@ -28,9 +28,9 @@
                             </tr>
                         </thead>
                         <tbody *ngIf="!isLoading">
-                            <tr *ngFor="let oficina of oficinas">
+                            <tr *ngFor="let oficina of oficinas" class="linha-clicavel" (click)="abrirDetalhe(oficina)">
                                 <td style="font-weight: 600; text-align: left !important">{{ oficina.nomeOficina }}</td>
-                                <td>
+                                <td (click)="$event.stopPropagation()">
                                     <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(oficina)">
                                         <i class="bi bi-pencil"></i>
                                     </button>
@@ -66,7 +66,7 @@
 <div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-panel-header">
-      <h5>{{ editandoId ? 'Editar Oficina' : 'Adicionar Oficina' }}</h5>
+      <h5><span class="modal-icon"><i class="bi bi-shop-window"></i></span>{{ editandoId ? 'Editar Oficina' : 'Adicionar Oficina' }}</h5>
       <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
     </div>
 
@@ -87,4 +87,72 @@
       </div>
     </form>
   </div>
+</div>
+
+<!-- Detalhes (offcanvas) -->
+<div class="offcanvas-backdrop" [class.show]="!!detalhe" (click)="fecharDetalhe()"></div>
+<div class="offcanvas-panel" [class.open]="!!detalhe">
+  <ng-container *ngIf="detalhe as item">
+    <div class="offcanvas-header">
+      <div>
+        <h5>{{ item.nomeOficina }}</h5>
+        <div class="offcanvas-sub">Oficina</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-edit" (click)="editarDoDetalhe(item)">
+          <i class="bi bi-pencil"></i> Editar
+        </button>
+        <button type="button" class="btn-close-custom" (click)="fecharDetalhe()">&times;</button>
+      </div>
+    </div>
+    <div class="offcanvas-body">
+      <div class="detalhe-grid">
+        <div class="detalhe-item inteiro">
+          <div class="detalhe-label">Nome da oficina</div>
+          <div class="detalhe-valor">{{ item.nomeOficina }}</div>
+        </div>
+      </div>
+
+      <div class="detalhe-secao">
+        <h6><i class="bi bi-wrench-adjustable"></i> Manutenções feitas aqui</h6>
+        <div *ngIf="carregandoHistorico" class="py-2 text-center">
+          <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
+        </div>
+        <ng-container *ngIf="!carregandoHistorico && manutencoes">
+          <ng-container *ngIf="resumo(item.id!) as r">
+            <div class="detalhe-resumo">
+          <div class="detalhe-resumo-card">
+            <div class="detalhe-resumo-titulo"><i class="bi bi-wrench-adjustable"></i> Manutenções</div>
+            <div class="detalhe-resumo-qtd">{{ r.total }}</div>
+            <div class="detalhe-resumo-valor" style="color: var(--color-expense)">{{ r.custo | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+          </div>
+            </div>
+
+            <div class="mt-4" *ngIf="r.ultimas.length > 0">
+              <div class="detalhe-label mb-2">Últimas manutenções</div>
+              <table class="table table-sm mb-0">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Caminhão</th>
+                    <th style="text-align: left !important">Descrição</th>
+                    <th>Custo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let m of r.ultimas">
+                    <td>{{ m.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
+                    <td>{{ m.placaCaminhao }}</td>
+                    <td style="text-align: left !important">{{ m.descricao || '—' }}</td>
+                    <td>{{ (m.custo ?? 0) | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div *ngIf="r.ultimas.length === 0" class="detalhe-vazio mt-3">Nenhuma manutenção registrada nesta oficina.</div>
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
 </div>

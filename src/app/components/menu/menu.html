@@ -69,6 +69,10 @@
   </nav>
 
   <div class="sidebar-footer">
+    <a routerLink="/perfil" routerLinkActive="active" class="sidebar-link" (click)="close()">
+      <i class="bi bi-person-circle"></i>
+      <span>Meu Perfil</span>
+    </a>
     <button class="sidebar-link sidebar-logout" (click)="sair()">
       <i class="bi bi-box-arrow-right"></i>
       <span>Sair</span>

@@ -119,8 +119,8 @@
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <tr *ngFor="let frete of fretesOrdenados" style="cursor: pointer" (click)="abrirDetalhe(frete)">
-                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ frete.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
+              <tr *ngFor="let frete of fretesOrdenados" class="linha-clicavel" (click)="abrirDetalhe(frete)">
+                <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ frete.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}<i *ngIf="frete.totalNotas" class="bi bi-paperclip tem-nota" title="Tem nota anexada"></i></td>
                 <td style="text-align: left !important; font-size: 0.875rem">{{ frete.nomeFazenda || '—' }}</td>
                 <td style="font-size: 0.875rem; font-weight: 600">{{ frete.placa }}</td>
                 <td style="font-size: 0.875rem">{{ frete.nomeMotorista }}</td>
@@ -164,7 +164,7 @@
 <div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-panel-header">
-      <h5>{{ editandoId ? 'Editar Frete' : 'Registrar Frete' }}</h5>
+      <h5><span class="modal-icon"><i class="bi bi-box-seam-fill"></i></span>{{ editandoId ? 'Editar Frete' : 'Registrar Frete' }}</h5>
       <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
     </div>
 
@@ -227,6 +227,14 @@
               <option *ngFor="let c of cargas" [ngValue]="c.id">{{ c.nome }}</option>
             </select>
           </div>
+        </div>
+
+        <div class="nota-modal-secao">
+          <label class="form-label"><i class="bi bi-receipt"></i> Nota (opcional)</label>
+          <div class="form-text mt-0 mb-2">
+            {{ editandoId ? 'Para ver ou excluir as notas já anexadas, abra o frete na lista.' : 'Anexe uma foto ou PDF da nota. No celular, dá para tirar a foto na hora.' }}
+          </div>
+          <app-seletor-notas [(arquivos)]="notasPendentes" [desabilitado]="salvando"></app-seletor-notas>
         </div>
       </div>
 
@@ -300,6 +308,8 @@
           <div class="detalhe-valor">{{ frete.nomeCarga || '—' }}</div>
         </div>
       </div>
+
+      <app-notas [vinculo]="{ freteId: frete.id! }" (totalAlterado)="frete.totalNotas = $event"></app-notas>
     </div>
   </ng-container>
 </div>

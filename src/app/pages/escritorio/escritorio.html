@@ -92,7 +92,7 @@
 <div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-panel-header">
-      <h5>{{ editandoId ? 'Editar Documento' : 'Enviar Documento' }}</h5>
+      <h5><span class="modal-icon"><i class="bi bi-folder2-open"></i></span>{{ editandoId ? 'Editar Documento' : 'Enviar Documento' }}</h5>
       <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
     </div>
 

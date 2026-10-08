@@ -132,16 +132,19 @@ export class Fazenda {
     }
     this.expandidoId = fazenda.id;
     this.novoContato = '';
-    if (!this.contatosPorFazenda[fazenda.id]) {
-      this.carregandoContatos = true;
-      this.service.listarContatos(fazenda.id).subscribe({
-        next: (contatos) => {
-          this.contatosPorFazenda[fazenda.id!] = contatos;
-          this.carregandoContatos = false;
-        },
-        error: () => { this.carregandoContatos = false; },
-      });
-    }
+    this.carregarContatos(fazenda.id);
+  }
+
+  private carregarContatos(id: number) {
+    if (this.contatosPorFazenda[id]) return;
+    this.carregandoContatos = true;
+    this.service.listarContatos(id).subscribe({
+      next: (contatos) => {
+        this.contatosPorFazenda[id] = contatos;
+        this.carregandoContatos = false;
+      },
+      error: () => { this.carregandoContatos = false; },
+    });
   }
 
   adicionarContato(fazendaId: number) {
@@ -185,5 +188,21 @@ export class Fazenda {
   private atualizarTotalContatos(fazendaId: number, total: number) {
     const fazenda = this.fazendas.find(f => f.id === fazendaId);
     if (fazenda) fazenda.totalContatos = total;
+  }
+
+  detalhe: FazendaModel | null = null;
+
+  abrirDetalhe(item: FazendaModel) {
+    this.detalhe = item;
+    if (item.id) this.carregarContatos(item.id);
+  }
+
+  fecharDetalhe() {
+    this.detalhe = null;
+  }
+
+  editarDoDetalhe(item: FazendaModel) {
+    this.detalhe = null;
+    this.abrirEdicao(item);
   }
 }

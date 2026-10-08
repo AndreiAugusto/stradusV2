@@ -32,16 +32,16 @@
             </thead>
             <tbody *ngIf="!isLoading">
               <ng-container *ngFor="let f of fazendas">
-                <tr>
+                <tr class="linha-clicavel" (click)="abrirDetalhe(f)">
                   <td style="text-align: left !important; font-weight: 600">{{ f.nome }}</td>
                   <td style="font-size: 0.875rem">{{ f.nomeCidade ? (f.nomeCidade + '/' + f.siglaEstado) : '—' }}</td>
-                  <td>
+                  <td (click)="$event.stopPropagation()">
                     <button class="tipo-badge" style="background: var(--color-primary); cursor: pointer; border: none" (click)="toggleContatos(f)">
                       {{ contatosPorFazenda[f.id!]?.length ?? f.totalContatos ?? 0 }}
                       <i class="bi" [ngClass]="expandidoId === f.id ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
                     </button>
                   </td>
-                  <td>
+                  <td (click)="$event.stopPropagation()">
                     <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(f)">
                       <i class="bi bi-pencil"></i>
                     </button>
@@ -119,7 +119,7 @@
 <div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-panel-header">
-      <h5>{{ editandoId ? 'Editar Fazenda' : 'Adicionar Fazenda' }}</h5>
+      <h5><span class="modal-icon"><i class="bi bi-tree"></i></span>{{ editandoId ? 'Editar Fazenda' : 'Adicionar Fazenda' }}</h5>
       <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
     </div>
 
@@ -145,4 +145,50 @@
       </div>
     </form>
   </div>
+</div>
+
+<!-- Detalhes (offcanvas) -->
+<div class="offcanvas-backdrop" [class.show]="!!detalhe" (click)="fecharDetalhe()"></div>
+<div class="offcanvas-panel" [class.open]="!!detalhe">
+  <ng-container *ngIf="detalhe as item">
+    <div class="offcanvas-header">
+      <div>
+        <h5>{{ item.nome }}</h5>
+        <div class="offcanvas-sub">{{ item.nomeCidade ? (item.nomeCidade + '/' + item.siglaEstado) : 'Cidade não informada' }}</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-edit" (click)="editarDoDetalhe(item)">
+          <i class="bi bi-pencil"></i> Editar
+        </button>
+        <button type="button" class="btn-close-custom" (click)="fecharDetalhe()">&times;</button>
+      </div>
+    </div>
+    <div class="offcanvas-body">
+      <div class="detalhe-grid">
+        <div class="detalhe-item">
+          <div class="detalhe-label">Nome</div>
+          <div class="detalhe-valor">{{ item.nome }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Cidade</div>
+          <div class="detalhe-valor">{{ item.nomeCidade ? (item.nomeCidade + '/' + item.siglaEstado) : '—' }}</div>
+        </div>
+      </div>
+
+      <div class="detalhe-secao">
+        <h6><i class="bi bi-telephone"></i> Contatos</h6>
+        <div *ngIf="carregandoContatos && !contatosPorFazenda[item.id!]" class="py-2 text-center">
+          <div class="spinner-border spinner-border-sm" style="color: var(--color-primary)" role="status"></div>
+        </div>
+        <ng-container *ngIf="contatosPorFazenda[item.id!] as contatos">
+          <ul class="list-group" *ngIf="contatos.length > 0">
+            <li class="list-group-item" *ngFor="let c of contatos" style="font-size: 1.05rem">
+              <i class="bi bi-person me-2" style="color: var(--color-text-muted)"></i>{{ c.contato }}
+            </li>
+          </ul>
+          <div *ngIf="contatos.length === 0" class="detalhe-vazio">Nenhum contato cadastrado.</div>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
 </div>

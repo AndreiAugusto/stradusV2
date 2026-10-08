@@ -105,7 +105,7 @@
               </tr>
             </thead>
             <tbody *ngIf="!isLoading">
-              <tr *ngFor="let ab of abastecimentosOrdenados">
+              <tr *ngFor="let ab of abastecimentosOrdenados" class="linha-clicavel" (click)="abrirDetalhe(ab)">
                 <td style="color: var(--color-text-muted); font-size: 0.875rem">{{ ab.data  | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</td>
                 <td style="font-size: 0.875rem; font-weight: 600">{{ ab.placa }}</td>
                 <td style="font-size: 0.875rem">{{ ab.quilometragem ? (ab.quilometragem | number:'1.0-0':'pt-BR') : '—' }}</td>
@@ -114,7 +114,7 @@
                 <td class="fw-semibold" style="color: #EF4444">
                   {{ ab.custoTotal | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
                 </td>
-                <td>
+                <td (click)="$event.stopPropagation()">
                   <button class="btn btn-sm btn-edit me-1" (click)="abrirEdicao(ab)">
                     <i class="bi bi-pencil"></i>
                   </button>
@@ -150,7 +150,7 @@
 <div class="modal-overlay" *ngIf="showForm" (click)="fecharForm()">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-panel-header">
-      <h5>{{ editandoId ? 'Editar Abastecimento' : 'Registrar Abastecimento' }}</h5>
+      <h5><span class="modal-icon"><i class="bi bi-fuel-pump-fill"></i></span>{{ editandoId ? 'Editar Abastecimento' : 'Registrar Abastecimento' }}</h5>
       <button type="button" class="btn-close-custom" (click)="fecharForm()">&times;</button>
     </div>
 
@@ -197,4 +197,53 @@
       </div>
     </form>
   </div>
+</div>
+
+<!-- Detalhes (offcanvas) -->
+<div class="offcanvas-backdrop" [class.show]="!!detalhe" (click)="fecharDetalhe()"></div>
+<div class="offcanvas-panel" [class.open]="!!detalhe">
+  <ng-container *ngIf="detalhe as item">
+    <div class="offcanvas-header">
+      <div>
+        <h5>Abastecimento — {{ item.placa }}</h5>
+        <div class="offcanvas-sub">{{ item.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button type="button" class="btn btn-sm btn-edit" (click)="editarDoDetalhe(item)">
+          <i class="bi bi-pencil"></i> Editar
+        </button>
+        <button type="button" class="btn-close-custom" (click)="fecharDetalhe()">&times;</button>
+      </div>
+    </div>
+    <div class="offcanvas-body">
+      <div class="detalhe-valor-destaque despesa">{{ item.custoTotal | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</div>
+
+      <div class="detalhe-grid">
+        <div class="detalhe-item">
+          <div class="detalhe-label">Data</div>
+          <div class="detalhe-valor">{{ item.data | date:'dd/MM/yyyy':'UTC':'pt-BR' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Caminhão</div>
+          <div class="detalhe-valor">{{ item.placa || '—' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Quilometragem</div>
+          <div class="detalhe-valor">{{ item.quilometragem ? (item.quilometragem | number:'1.0-0':'pt-BR') + ' km' : '—' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Litros</div>
+          <div class="detalhe-valor">{{ item.litros ? (item.litros | number:'1.0-2':'pt-BR') + ' L' : '—' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Preço por litro</div>
+          <div class="detalhe-valor">{{ item.litros ? ((item.custoTotal / item.litros) | currency:'BRL':'symbol':'1.2-2':'pt-BR') : '—' }}</div>
+        </div>
+        <div class="detalhe-item">
+          <div class="detalhe-label">Consumo</div>
+          <div class="detalhe-valor">{{ item.id && consumoPorId[item.id] ? (consumoPorId[item.id] | number:'1.1-1':'pt-BR') + ' km/L' : '—' }}</div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
 </div>

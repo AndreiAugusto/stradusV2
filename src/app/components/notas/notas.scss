@@ -1,0 +1,140 @@
+.notas-qtd {
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+
+.notas-vazio {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #F8FAFC;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+
+  i { font-size: 1.4rem; }
+}
+
+.notas-abas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.notas-aba {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.6rem;
+  padding: 0.4rem 1rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.6rem;
+  background: var(--color-card);
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+
+  &:hover { border-color: var(--color-primary); color: var(--color-text); }
+
+  &.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+  }
+}
+
+.notas-preview {
+  position: relative;
+  min-height: 220px;
+  max-height: 520px;
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  &.pdf { height: 520px; }
+
+  img {
+    max-width: 100%;
+    max-height: 520px;
+    object-fit: contain;
+    cursor: zoom-in;
+  }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+}
+
+.notas-preview-carregando,
+.notas-preview-fallback {
+  text-align: center;
+  color: var(--color-text-muted);
+
+  i { font-size: 2.5rem; }
+}
+
+.notas-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.notas-info-nome {
+  flex: 1 1 200px;
+  min-width: 0;
+  font-size: 1rem;
+
+  div {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  small { color: var(--color-text-muted); font-size: 0.85rem; }
+}
+
+.notas-info-acoes {
+  display: flex;
+  gap: 0.5rem;
+
+  .btn {
+    min-height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 1rem;
+    border-radius: 0.6rem;
+  }
+}
+
+.notas-adicionar {
+  margin-top: 1.5rem;
+}
+
+.notas-enviando {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+@media (max-width: 575.98px) {
+  .notas-preview.pdf { height: 420px; }
+  .notas-info-acoes span { display: none; }
+}

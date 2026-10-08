@@ -21,4 +21,5 @@ export interface FreteModel {
   nomeDestino?: string;
   nomeCarga?: string;
   nomeFazenda?: string;
+  totalNotas?: number;
 }

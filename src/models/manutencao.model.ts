@@ -10,6 +10,7 @@ export interface ManutencaoModel {
   parcelasPagas?: number;
   placaCaminhao: string;
   nomeOficina: string;
+  totalNotas?: number;
 }
 
 export interface ManutencaoParcelaModel {

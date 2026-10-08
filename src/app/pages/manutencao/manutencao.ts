@@ -9,13 +9,16 @@ import { CaminhaoService } from '../../../services/caminhao.service';
 import { OficinaModel } from '../../../models/oficina.model';
 import { OficinaService } from '../../../services/oficina.service';
 import { ToastService } from '../../../services/toast.service';
+import { NotaService, mensagemErroUpload } from '../../../services/nota.service';
+import { SeletorNotas } from '../../components/seletor-notas/seletor-notas';
+import { Notas } from '../../components/notas/notas';
 import { intervaloMesAtual } from '../../../utils/periodo.util';
 
 type ColunaManutencao = 'data' | 'placaCaminhao' | 'nomeOficina' | 'descricao' | 'custo';
 
 @Component({
   selector: 'app-manutencao',
-  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [Menu, CommonModule, ReactiveFormsModule, FormsModule, SeletorNotas, Notas],
   templateUrl: './manutencao.html',
   styleUrl: './manutencao.scss',
 })
@@ -94,6 +97,7 @@ export class Manutencao {
     private service: ManutencaoService,
     private caminhaoService: CaminhaoService,
     private oficinaService: OficinaService,
+    private notaService: NotaService,
     private toast: ToastService,
   ) {}
 
@@ -130,6 +134,7 @@ export class Manutencao {
 
   abrirNovo() {
     this.editandoId = null;
+    this.notasPendentes = [];
     this.form.reset({ descricao: '', custo: null, data: '', caminhaoId: null, oficinaNome: '', numeroParcelas: 1 });
     this.form.get('custo')?.enable();
     this.form.get('data')?.enable();
@@ -139,6 +144,7 @@ export class Manutencao {
 
   abrirEdicao(item: ManutencaoModel) {
     this.editandoId = item.id ?? null;
+    this.notasPendentes = [];
     this.form.reset({
       descricao: item.descricao ?? '',
       custo: item.custo ?? null,
@@ -154,6 +160,17 @@ export class Manutencao {
     this.form.get('data')?.disable();
     this.form.get('numeroParcelas')?.disable();
     this.showForm = true;
+  }
+
+  /** Notas escolhidas no modal — só são enviadas depois que o registro é salvo (precisa do id). */
+  notasPendentes: File[] = [];
+
+  private concluirSalvar(res: any) {
+    if (res) this.toast.deResposta(res);
+    this.salvando = false;
+    this.showForm = false;
+    this.notasPendentes = [];
+    this.carregar();
   }
 
   fecharForm() {
@@ -213,11 +230,19 @@ export class Manutencao {
         : this.service.criar(payload);
 
       request.subscribe({
-        next: (res) => {
-          this.toast.deResposta(res);
-          this.salvando = false;
-          this.showForm = false;
-          this.carregar();
+        next: (res: any) => {
+          const id = this.editandoId ?? res?.id;
+          if (res?.error || !id || this.notasPendentes.length === 0) {
+            this.concluirSalvar(res);
+            return;
+          }
+          this.notaService.enviarTodos(this.notasPendentes, { manutencaoId: id }).subscribe({
+            next: () => this.concluirSalvar(res),
+            error: (err) => {
+              this.toast.erro(`Manutenção salva, mas a nota não foi enviada: ${mensagemErroUpload(err)}`);
+              this.concluirSalvar(null);
+            },
+          });
         },
         error: () => {
           this.toast.erro('Erro ao comunicar com o servidor.');
@@ -234,16 +259,19 @@ export class Manutencao {
       return;
     }
     this.expandidoId = m.id;
-    if (!this.parcelasPorManutencao[m.id]) {
-      this.carregandoParcelas = true;
-      this.service.listarParcelas(m.id).subscribe({
-        next: (parcelas) => {
-          this.parcelasPorManutencao[m.id!] = parcelas;
-          this.carregandoParcelas = false;
-        },
-        error: () => { this.carregandoParcelas = false; },
-      });
-    }
+    this.carregarParcelas(m.id);
+  }
+
+  private carregarParcelas(id: number) {
+    if (this.parcelasPorManutencao[id]) return;
+    this.carregandoParcelas = true;
+    this.service.listarParcelas(id).subscribe({
+      next: (parcelas) => {
+        this.parcelasPorManutencao[id] = parcelas;
+        this.carregandoParcelas = false;
+      },
+      error: () => { this.carregandoParcelas = false; },
+    });
   }
 
   togglePago(parcela: ManutencaoParcelaModel, manutencaoId: number) {
@@ -260,5 +288,21 @@ export class Manutencao {
       },
       error: () => this.toast.erro('Erro ao comunicar com o servidor.'),
     });
+  }
+
+  detalhe: ManutencaoModel | null = null;
+
+  abrirDetalhe(item: ManutencaoModel) {
+    this.detalhe = item;
+    if (item.id && (item.totalParcelas ?? 1) > 1) this.carregarParcelas(item.id);
+  }
+
+  fecharDetalhe() {
+    this.detalhe = null;
+  }
+
+  editarDoDetalhe(item: ManutencaoModel) {
+    this.detalhe = null;
+    this.abrirEdicao(item);
   }
 }
