@@ -6,7 +6,7 @@
     <div class="page-header d-flex justify-content-between align-items-start">
       <div>
         <h1>Extrato</h1>
-        <p class="page-subtitle">Todas as movimentações — fretes, abastecimentos, manutenções e custos fixos</p>
+        <p class="page-subtitle">Todas as movimentações — fretes, abastecimentos, manutenções, custos fixos, salários e adiantamentos</p>
       </div>
     </div>
 
@@ -135,9 +135,16 @@
                 <td style="text-align: left !important; font-size: 0.875rem">
                   <span class="tipo-badge me-2" [style.background-color]="corTipo(item.tipo)">{{ labelTipo(item.tipo) }}</span>
                   {{ item.historico }}
+                  <div *ngIf="item.tipo === 'salario-motorista' && item.descontoAdiantamento" class="small" style="color: var(--color-text-muted)">
+                    Já descontado {{ item.descontoAdiantamento | currency:'BRL':'symbol':'1.2-2':'pt-BR' }} de adiantamento
+                  </div>
                 </td>
-                <td class="fw-semibold" style="color: #EF4444">
+                <td *ngIf="item.tipo !== 'desconto-adiantamento'" class="fw-semibold" style="color: #EF4444">
                   {{ item.despesas ? (item.despesas | currency:'BRL':'symbol':'1.2-2':'pt-BR') : '—' }}
+                </td>
+                <td *ngIf="item.tipo === 'desconto-adiantamento'" style="color: var(--color-text-muted)" title="Já abatido na linha do salário; não entra nos totais">
+                  ({{ item.descontoAdiantamento | currency:'BRL':'symbol':'1.2-2':'pt-BR' }})
+                  <div class="small">abatido do salário</div>
                 </td>
                 <td class="fw-semibold" style="color: #10B981">
                   {{ item.receitas ? (item.receitas | currency:'BRL':'symbol':'1.2-2':'pt-BR') : '—' }}

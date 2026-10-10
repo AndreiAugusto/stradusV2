@@ -1,0 +1,8 @@
+// Coluna "Adiantamento": + entregue no mês (soma ao que sai para o motorista),
+// − parcela de adiantamento anterior descontada do salário.
+.adiant-mais { color: #F59E0B; }
+.adiant-menos { color: #10B981; }
+.adiant-mais + .adiant-menos,
+.adiant-mais + .adiant-mais,
+.adiant-menos + .adiant-menos { margin-top: 0.35rem; }
+.adiant-nota { color: var(--color-text-muted); font-weight: normal; }

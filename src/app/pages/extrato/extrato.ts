@@ -11,6 +11,8 @@ import { MotoristaService } from '../../../services/motorista.service';
 import { intervaloMesAtual } from '../../../utils/periodo.util';
 
 type Coluna = 'data' | 'placa' | 'motorista' | 'empresa' | 'historico' | 'despesas' | 'receitas';
+/** O filtro "Adiantamento" traz tanto a entrega quanto as parcelas descontadas. */
+type TipoFiltro = Exclude<ExtratoItem['tipo'], 'desconto-adiantamento'>;
 
 @Component({
   selector: 'app-extrato',
@@ -25,23 +27,24 @@ export class Extrato {
   caminhoes: CaminhaoModel[] = [];
   motoristas: MotoristaModel[] = [];
 
-  tiposDisponiveis: { valor: ExtratoItem['tipo']; label: string }[] = [
+  tiposDisponiveis: { valor: TipoFiltro; label: string }[] = [
     { valor: 'frete', label: 'Frete' },
     { valor: 'abastecimento', label: 'Abastecimento' },
     { valor: 'manutencao', label: 'Manutenção' },
     { valor: 'custo-fixo', label: 'Custo Fixo' },
     { valor: 'salario-motorista', label: 'Salário Motorista' },
+    { valor: 'adiantamento', label: 'Adiantamento' },
   ];
 
   filtro: {
     dataInicio: string;
     dataFim: string;
-    tipos: Record<ExtratoItem['tipo'], boolean>;
+    tipos: Record<TipoFiltro, boolean>;
     caminhaoId: number | null;
     motoristaId: number | null;
   } = {
     ...intervaloMesAtual(),
-    tipos: { frete: true, abastecimento: true, manutencao: true, 'custo-fixo': true, 'salario-motorista': true },
+    tipos: { frete: true, abastecimento: true, manutencao: true, 'custo-fixo': true, 'salario-motorista': true, adiantamento: true },
     caminhaoId: null,
     motoristaId: null,
   };
@@ -128,7 +131,7 @@ export class Extrato {
     this.filtro = {
       dataInicio: '',
       dataFim: '',
-      tipos: { frete: true, abastecimento: true, manutencao: true, 'custo-fixo': true, 'salario-motorista': true },
+      tipos: { frete: true, abastecimento: true, manutencao: true, 'custo-fixo': true, 'salario-motorista': true, adiantamento: true },
       caminhaoId: null,
       motoristaId: null,
     };
@@ -136,6 +139,7 @@ export class Extrato {
   }
 
   labelTipo(tipo: ExtratoItem['tipo']): string {
+    if (tipo === 'desconto-adiantamento') return 'Desconto Adiant.';
     return this.tiposDisponiveis.find((t) => t.valor === tipo)?.label ?? tipo;
   }
 
@@ -146,6 +150,8 @@ export class Extrato {
       manutencao: '#EF4444',
       'custo-fixo': '#EF4444',
       'salario-motorista': '#EF4444',
+      adiantamento: '#8B5CF6',
+      'desconto-adiantamento': '#94A3B8',
     };
     return cores[tipo];
   }

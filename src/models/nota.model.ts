@@ -2,10 +2,11 @@ export interface NotaModel {
   id: number;
   freteId?: number | null;
   manutencaoId?: number | null;
+  adiantamentoId?: number | null;
   nomeArquivo: string;
   mimeType?: string;
   tamanho?: number;
   criadoEm?: string;
 }
 
-export type VinculoNota = { freteId: number } | { manutencaoId: number };
+export type VinculoNota = { freteId: number } | { manutencaoId: number } | { adiantamentoId: number };

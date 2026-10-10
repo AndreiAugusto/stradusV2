@@ -26,7 +26,11 @@ export class NotaService {
    */
   enviar(arquivo: File, vinculo: VinculoNota) {
     const token = localStorage.getItem('accessToken');
-    const pasta = 'freteId' in vinculo ? `frete/${vinculo.freteId}` : `manutencao/${vinculo.manutencaoId}`;
+    const pasta = 'freteId' in vinculo
+      ? `frete/${vinculo.freteId}`
+      : 'manutencaoId' in vinculo
+        ? `manutencao/${vinculo.manutencaoId}`
+        : `adiantamento/${vinculo.adiantamentoId}`;
 
     return from(comprimirImagem(arquivo)).pipe(
       switchMap((final) =>
